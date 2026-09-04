@@ -15,6 +15,7 @@ from app.agents.router import Target, route_agent
 from app.boss.manifest import load_manifest, manifest_base64, manifest_sha256, verify_base64_copy
 from app.boss.providers import auto_fanout_enabled, provider_readiness
 from app.boss.service import poll_feed_source
+from app.cloud import router as cloud_router
 from app.cms.models import CmsUpsert
 from app.cms.store import (
     CmsConflictError,
@@ -36,7 +37,7 @@ app.add_middleware(
     allow_origins=["https://appassets.androidplatform.net"],
     allow_credentials=False,
     allow_methods=["GET", "PUT", "DELETE", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "X-Cathedral-Token"],
+    allow_headers=["Content-Type", "X-Cathedral-Token", "X-Cathedral-Confirm"],
 )
 
 
@@ -56,6 +57,7 @@ class FeedPollRequest(BaseModel):
 runtime = {"cache_state": "offline", "avatar_state": "idle", "progress": 0.0}
 
 app.mount("/compat", WSGIMiddleware(compat_app))
+app.include_router(cloud_router)
 
 WEB_DIST = Path(__file__).resolve().parents[2] / "apps" / "forge-ui" / "dist"
 if WEB_DIST.is_dir():
