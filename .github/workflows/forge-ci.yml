@@ -3,35 +3,63 @@ name: forge-ci
 on:
   pull_request:
     paths:
-      - 'apps/forge-ui/**'
+      - 'apps/**'
       - 'server/**'
       - 'godot/**'
       - 'modal/**'
       - 'schemas/**'
+      - 'analytics/**'
+      - 'termux/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'AGENTS.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
       - '.github/workflows/forge-ci.yml'
   push:
     branches: [video-forge-usb-cache]
     paths:
-      - 'apps/forge-ui/**'
+      - 'apps/**'
       - 'server/**'
       - 'godot/**'
       - 'modal/**'
       - 'schemas/**'
+      - 'analytics/**'
+      - 'termux/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'AGENTS.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
       - '.github/workflows/forge-ci.yml'
 
 jobs:
-  vue:
+  web:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/forge-ui
+        working-directory: apps
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - run: npm install
-      - run: npm run build
+          node-version: '24'
+      - run: npm install --global npm@12.0.2
+      - run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build --workspace=video-forge-ui
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ./server
+      - run: python -m compileall -q server/app scripts tests
+      - run: python -m unittest discover -s tests -v
 
   contracts:
     runs-on: ubuntu-latest
@@ -39,9 +67,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
       - run: python -m json.tool schemas/cutscene.schema.json >/dev/null
-      - run: python -m py_compile server/app/main.py server/app/agents/router.py modal/worker.py
+      - run: python -m json.tool schemas/agent-decision.schema.json >/dev/null
+      - run: python -m json.tool schemas/telemetry-event.schema.json >/dev/null
+      - run: python -m json.tool analytics/event-catalog.json >/dev/null
       - run: |
           python - <<'PY'
           import tomllib
@@ -49,3 +79,4 @@ jobs:
               tomllib.load(f)
           print('pyproject.toml ok')
           PY
+      - run: python scripts/architecture_sanity.py

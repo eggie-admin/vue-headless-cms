@@ -2,13 +2,18 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import suppress
+from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from starlette.middleware.wsgi import WSGIMiddleware
 
 from app.agents.router import Target, route_agent
+from app.flask_compat import compat_app
+from app.telemetry import emit_event
 
-app = FastAPI(title="Video Forge Control", version="0.1.0")
+app = FastAPI(title="Video Forge Control", version="0.2.0")
 
 
 class AgentRequest(BaseModel):
@@ -26,6 +31,17 @@ runtime = {
     "progress": 0.0,
 }
 
+app.mount("/compat", WSGIMiddleware(compat_app))
+
+WEB_DIST = Path(__file__).resolve().parents[2] / "apps" / "forge-ui" / "dist"
+if WEB_DIST.is_dir():
+    app.mount("/ui", StaticFiles(directory=WEB_DIST, html=True), name="forge-ui")
+
+
+@app.on_event("startup")
+async def startup_event() -> None:
+    await emit_event("cathedral_boot", {"surface": "python-control-plane", "version": "0.2.0"})
+
 
 @app.get("/api/health")
 async def health() -> dict[str, object]:
@@ -39,9 +55,19 @@ async def set_avatar_state(request: AvatarStateRequest) -> dict[str, object]:
 
 
 @app.post("/api/agent/chat")
-async def agent_chat(request: AgentRequest) -> dict[str, str]:
-    provider, output = await route_agent(request.message, request.target)
-    return {"provider": provider, "output": output}
+async def agent_chat(request: AgentRequest) -> dict[str, object]:
+    provider, decision = await route_agent(request.message, request.target)
+    await emit_event(
+        "agent_routed",
+        {
+            "provider": provider,
+            "lane": decision.lane,
+            "tool": decision.tool,
+            "risk": decision.risk,
+            "requires_confirmation": decision.requires_confirmation,
+        },
+    )
+    return {"provider": provider, "decision": decision.model_dump()}
 
 
 @app.websocket("/ws/events")

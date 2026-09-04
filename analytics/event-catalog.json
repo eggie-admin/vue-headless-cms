@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "privacy": "sanitized-backend-only",
+  "events": {
+    "cathedral_boot": ["surface", "version"],
+    "control_plane_health": ["surface", "ok", "latency_ms"],
+    "agent_routed": ["provider", "lane", "tool", "risk", "requires_confirmation"],
+    "agent_decision_rejected": ["provider", "tool", "reason_code"],
+    "render_started": ["provider", "job_stage", "fps", "width", "height"],
+    "render_completed": ["provider", "job_stage", "duration_ms", "frame_count"],
+    "render_failed": ["provider", "job_stage", "reason_code"],
+    "cache_state_changed": ["from_state", "to_state", "reason_code"],
+    "cutscene_started": ["scene_kind"],
+    "cutscene_completed": ["scene_kind", "duration_ms"]
+  },
+  "forbidden_properties": [
+    "prompt_text",
+    "api_key",
+    "token",
+    "password",
+    "filesystem_path",
+    "filename",
+    "media_title",
+    "email",
+    "real_name"
+  ]
+}
