@@ -69,7 +69,7 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
     private fun ensureCmsView(): WebView {
         cmsView?.let { return it }
 
-        val hostActivity = activity
+        val hostActivity = activity ?: error("Godot Activity unavailable for Cathedral CMS")
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(hostActivity))
             .build()
