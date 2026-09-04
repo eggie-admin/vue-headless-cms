@@ -6,8 +6,9 @@ on:
     paths:
       - 'apps/**'
       - 'godot/**'
-      - 'server/app/main.py'
+      - 'server/**'
       - 'fdroid/**'
+      - 'release/**'
       - 'scripts/stage_fdroid_repo.py'
       - 'scripts/cathedral_full_sanity.py'
       - 'termux/install-local-apk.sh'
@@ -17,8 +18,9 @@ on:
     paths:
       - 'apps/**'
       - 'godot/**'
-      - 'server/app/main.py'
+      - 'server/**'
       - 'fdroid/**'
+      - 'release/**'
       - 'scripts/stage_fdroid_repo.py'
       - 'scripts/cathedral_full_sanity.py'
       - 'termux/install-local-apk.sh'
@@ -176,7 +178,7 @@ jobs:
             "$GITHUB_WORKSPACE/$APK_PATH"
           test -s "$APK_PATH"
 
-      - name: Verify APK, WebView plugin, CMS assets and 16 KiB alignment
+      - name: Verify APK, release identity, WebView plugin, CMS assets and 16 KiB alignment
         shell: bash
         run: |
           set -euo pipefail
@@ -187,6 +189,12 @@ jobs:
           "$BUILD_TOOLS/aapt" dump xmltree "$APK_PATH" AndroidManifest.xml | tee build/android/manifest.txt
           unzip -l "$APK_PATH" | tee build/android/contents.txt
 
+          VERSION_NAME="$(python -c 'import json; print(json.load(open("release/version.json"))["version"])')"
+          VERSION_CODE="$(python -c 'import json; print(json.load(open("release/version.json"))["versionCode"])')"
+          PACKAGE_ID="$(python -c 'import json; print(json.load(open("release/version.json"))["packageId"])')"
+          grep -q "package: name='$PACKAGE_ID'" build/android/badging.txt
+          grep -q "versionCode='$VERSION_CODE'" build/android/badging.txt
+          grep -q "versionName='$VERSION_NAME'" build/android/badging.txt
           grep -q 'lib/arm64-v8a/' build/android/contents.txt
           if grep -qE 'lib/(armeabi-v7a|x86|x86_64)/' build/android/contents.txt; then
             echo 'Unexpected non-arm64 native ABI found in APK' >&2
@@ -200,11 +208,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          VERSION_CODE="$(python -c 'import json; print(json.load(open("release/version.json"))["versionCode"])')"
+          PACKAGE_ID="$(python -c 'import json; print(json.load(open("release/version.json"))["packageId"])')"
           python scripts/stage_fdroid_repo.py \
             --apk "$APK_PATH" \
             --output build/fdroid-stage \
-            --package art.eggiebagelface.videoforge.dev \
-            --version-code 5
+            --package "$PACKAGE_ID" \
+            --version-code "$VERSION_CODE"
 
       - name: Upload Android debug APK and private F-Droid staging bundle
         uses: actions/upload-artifact@v4
