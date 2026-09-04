@@ -25,6 +25,9 @@ ALLOWED_EVENTS = {
     "boss_provider_failed",
     "cms_document_saved",
     "cms_document_deleted",
+    "cloud_veo_submitted",
+    "cloud_drive_archived",
+    "hf_model_inspected",
 }
 
 BLOCKED_PROPERTY_FRAGMENTS = {
