@@ -1,0 +1,62 @@
+{
+  "manifest_version": "1.0.0",
+  "project": "Video Forge Cathedral",
+  "authority": "python_fastapi",
+  "sentry": {
+    "human_identity": "google_via_cloudflare_access",
+    "machine_identity": "cloudflare_access_service_token",
+    "provider_tokens_to_clients": false
+  },
+  "google_cloud": {
+    "auth": {
+      "mode": "application_default_credentials_or_workload_identity_federation",
+      "service_account_key_files": "forbidden_in_repo_and_apk",
+      "cloud_scope": "https://www.googleapis.com/auth/cloud-platform"
+    },
+    "vertex_video": {
+      "provider": "vertex_ai",
+      "model_default": "veo-3.1-generate-001",
+      "model_fast": "veo-3.1-fast-generate-001",
+      "location": "us-central1",
+      "durations_seconds": [4, 6, 8],
+      "aspect_ratios": ["16:9", "9:16"],
+      "resolutions": ["720p", "1080p"],
+      "output_stage": "google_cloud_storage",
+      "output_prefix_env": "GOOGLE_VEO_OUTPUT_GCS_URI",
+      "explicit_confirmation": true
+    },
+    "drive": {
+      "role": "durable_vault",
+      "folder_env": "GOOGLE_DRIVE_VAULT_FOLDER_ID",
+      "default_scope": "https://www.googleapis.com/auth/drive.file",
+      "shared_drive_scope": "https://www.googleapis.com/auth/drive",
+      "supports_all_drives": true,
+      "gcs_archive_requires_explicit_confirmation": true
+    }
+  },
+  "huggingface": {
+    "role": "model_registry_and_optional_inference",
+    "api_base": "https://huggingface.co",
+    "token_env": "HF_TOKEN",
+    "token_transport": "authorization_header_only",
+    "license_gate_required_before_download_or_runtime_use": true,
+    "automatic_model_download": false
+  },
+  "pipeline": [
+    "rss_atom_ingest",
+    "boss_json_normalize",
+    "python_policy",
+    "provider_select",
+    "vertex_veo_long_running_operation",
+    "gcs_stage",
+    "operator_confirmation",
+    "drive_vault_archive",
+    "cms_manifest_update"
+  ],
+  "secrets": {
+    "values_in_repo": false,
+    "values_in_apk": false,
+    "https_only": true,
+    "query_string_tokens": false
+  }
+}

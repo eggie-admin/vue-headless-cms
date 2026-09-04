@@ -1,0 +1,49 @@
+{
+  "$id": "https://video-forge.local/schemas/boss-ai-manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "approval_policy": {
+      "type": "object"
+    },
+    "doctrine": {
+      "type": "object"
+    },
+    "id": {
+      "const": "videoForge.bossAi"
+    },
+    "manifest_version": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "providers": {
+      "type": "object"
+    },
+    "routing": {
+      "type": "object"
+    },
+    "rss_atom_bus": {
+      "type": "object"
+    },
+    "secrets": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "manifest_version",
+    "id",
+    "name",
+    "doctrine",
+    "secrets",
+    "providers",
+    "rss_atom_bus",
+    "routing",
+    "approval_policy"
+  ],
+  "title": "Video Forge Boss AI Manifest",
+  "type": "object"
+}

@@ -1,0 +1,110 @@
+name: forge-ci
+
+on:
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'server/**'
+      - 'godot/**'
+      - 'modal/**'
+      - 'schemas/**'
+      - 'manifests/**'
+      - 'analytics/**'
+      - 'fdroid/**'
+      - 'termux/**'
+      - 'infra/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'README.md'
+      - 'AGENTS.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - '.github/workflows/forge-ci.yml'
+  push:
+    branches: [video-forge-usb-cache]
+    paths:
+      - 'apps/**'
+      - 'server/**'
+      - 'godot/**'
+      - 'modal/**'
+      - 'schemas/**'
+      - 'manifests/**'
+      - 'analytics/**'
+      - 'fdroid/**'
+      - 'termux/**'
+      - 'infra/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'README.md'
+      - 'AGENTS.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - '.github/workflows/forge-ci.yml'
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: npm install --global npm@12.0.2
+      - run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build --workspace=video-forge-ui
+      - name: Smoke npm-orchestrated backend install and runtime
+        run: npm run backend:install-smoke
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ./server
+      - run: python -m compileall -q server/app scripts tests
+      - run: python -m unittest discover -s tests -v
+      - name: Smoke FastAPI runtime directly
+        run: python scripts/backend_smoke.py
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m json.tool schemas/cutscene.schema.json >/dev/null
+      - run: python -m json.tool schemas/agent-decision.schema.json >/dev/null
+      - run: python -m json.tool schemas/telemetry-event.schema.json >/dev/null
+      - run: python -m json.tool schemas/feed-item.schema.json >/dev/null
+      - run: python -m json.tool schemas/feed-assessment.schema.json >/dev/null
+      - run: python -m json.tool schemas/boss-ai-manifest.schema.json >/dev/null
+      - run: python -m json.tool manifests/boss-ai.manifest.json >/dev/null
+      - run: python -m json.tool manifests/cloud-ai.manifest.json >/dev/null
+      - run: python -m json.tool analytics/event-catalog.json >/dev/null
+      - run: python -m json.tool infra/edge/edge-security.manifest.json >/dev/null
+      - run: python -m json.tool infra/samsung/samsung-lite-profile.json >/dev/null
+      - run: |
+          python - <<'PY'
+          import tomllib
+          with open('server/pyproject.toml', 'rb') as f:
+              tomllib.load(f)
+          print('pyproject.toml ok')
+          PY
+      - run: python scripts/architecture_sanity.py
+      - run: python scripts/build_boss_manifest.py --check
+      - run: python scripts/boss_ai_sanity.py
+      - run: python scripts/cathedral_full_sanity.py
+      - run: python scripts/edge_security_sanity.py
+      - run: python scripts/cloud_provider_sanity.py
+      - run: python scripts/samsung_edge_sanity.py
