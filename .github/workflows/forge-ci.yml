@@ -12,6 +12,7 @@ on:
       - 'analytics/**'
       - 'fdroid/**'
       - 'termux/**'
+      - 'infra/**'
       - 'scripts/**'
       - 'tests/**'
       - 'AGENTS.md'
@@ -30,6 +31,7 @@ on:
       - 'analytics/**'
       - 'fdroid/**'
       - 'termux/**'
+      - 'infra/**'
       - 'scripts/**'
       - 'tests/**'
       - 'AGENTS.md'
@@ -87,6 +89,7 @@ jobs:
       - run: python -m json.tool schemas/boss-ai-manifest.schema.json >/dev/null
       - run: python -m json.tool manifests/boss-ai.manifest.json >/dev/null
       - run: python -m json.tool analytics/event-catalog.json >/dev/null
+      - run: python -m json.tool infra/edge/edge-security.manifest.json >/dev/null
       - run: |
           python - <<'PY'
           import tomllib
@@ -98,3 +101,4 @@ jobs:
       - run: python scripts/build_boss_manifest.py --check
       - run: python scripts/boss_ai_sanity.py
       - run: python scripts/cathedral_full_sanity.py
+      - run: python scripts/edge_security_sanity.py
