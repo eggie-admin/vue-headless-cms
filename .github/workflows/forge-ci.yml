@@ -1,0 +1,51 @@
+name: forge-ci
+
+on:
+  pull_request:
+    paths:
+      - 'apps/forge-ui/**'
+      - 'server/**'
+      - 'godot/**'
+      - 'modal/**'
+      - 'schemas/**'
+      - '.github/workflows/forge-ci.yml'
+  push:
+    branches: [video-forge-usb-cache]
+    paths:
+      - 'apps/forge-ui/**'
+      - 'server/**'
+      - 'godot/**'
+      - 'modal/**'
+      - 'schemas/**'
+      - '.github/workflows/forge-ci.yml'
+
+jobs:
+  vue:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/forge-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm run build
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m json.tool schemas/cutscene.schema.json >/dev/null
+      - run: python -m py_compile server/app/main.py server/app/agents/router.py modal/worker.py
+      - run: |
+          python - <<'PY'
+          import tomllib
+          with open('server/pyproject.toml', 'rb') as f:
+              tomllib.load(f)
+          print('pyproject.toml ok')
+          PY

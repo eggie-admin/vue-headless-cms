@@ -1,0 +1,30 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #f4f7ff;
+  background: #070910;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body, #app { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+body { background: radial-gradient(circle at 50% 30%, #1a1740 0, #070910 48%, #030408 100%); }
+
+.cage-shell { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+.avatar-stage { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.avatar-orbit { width: min(34vw, 360px); aspect-ratio: 1; border: 1px solid #736cf6; border-radius: 50%; display: grid; place-items: center; box-shadow: 0 0 80px #5f54ff44; }
+.avatar-core { display: grid; place-items: center; width: 42%; aspect-ratio: 1; border-radius: 50%; background: #17162a; border: 1px solid #b3adff; letter-spacing: .18em; font-weight: 800; }
+.avatar-orbit span { position: absolute; margin-top: 240px; opacity: .7; text-transform: uppercase; font-size: .75rem; letter-spacing: .16em; }
+.window-cage { position: absolute; inset: 0; pointer-events: none; }
+.forge-window { position: absolute; width: min(390px, 44vw); min-height: 220px; overflow: hidden; border: 1px solid #625fc0aa; border-radius: 14px; background: #0c0e17e8; backdrop-filter: blur(16px); box-shadow: 0 22px 65px #000a; pointer-events: auto; }
+.forge-window header { display: flex; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; cursor: move; background: #171a2be8; border-bottom: 1px solid #33395f; user-select: none; }
+.forge-window header span { opacity: .62; font-size: .75rem; }
+.window-body { padding: 1rem; line-height: 1.45; }
+.window-body progress { width: 100%; }
+.jobs-window { left: 2.5vw; top: 6vh; }
+.agent-window { right: 2.5vw; top: 10vh; }
+.scene-window { left: 9vw; bottom: 5vh; }
+@media (max-width: 760px) {
+  .forge-window { width: 78vw; }
+  .agent-window { top: 35vh; right: 4vw; }
+  .scene-window { left: 7vw; bottom: 3vh; }
+}

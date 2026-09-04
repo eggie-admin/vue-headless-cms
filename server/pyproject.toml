@@ -1,0 +1,15 @@
+[project]
+name = "video-forge-control"
+version = "0.1.0"
+description = "Control plane for Video Forge tablet, cloud sync, agents and cutscenes"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi[standard]>=0.116",
+  "httpx>=0.28",
+  "openai-agents>=0.14.0",
+  "pydantic>=2.11",
+  "redis>=6.0",
+]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
