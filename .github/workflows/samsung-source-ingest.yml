@@ -7,7 +7,13 @@ on:
     paths:
       - 'apps/package.json'
       - 'scripts/source_ingest.py'
+      - 'scripts/vendor_docs_ingest.py'
+      - 'scripts/build_deep_research_stub.py'
+      - 'scripts/research_corpus_sanity.py'
       - 'manifests/source-ingest.manifest.json'
+      - 'manifests/vendor-docs.manifest.json'
+      - 'manifests/deep-research.stub.json'
+      - 'manifests/deep-research.stub.b64'
       - '.github/workflows/samsung-source-ingest.yml'
       - 'server/**'
       - 'godot/**'
@@ -21,7 +27,13 @@ on:
     paths:
       - 'apps/package.json'
       - 'scripts/source_ingest.py'
+      - 'scripts/vendor_docs_ingest.py'
+      - 'scripts/build_deep_research_stub.py'
+      - 'scripts/research_corpus_sanity.py'
       - 'manifests/source-ingest.manifest.json'
+      - 'manifests/vendor-docs.manifest.json'
+      - 'manifests/deep-research.stub.json'
+      - 'manifests/deep-research.stub.b64'
       - '.github/workflows/samsung-source-ingest.yml'
       - 'server/**'
       - 'godot/**'
@@ -45,12 +57,22 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Validate ingest contract
+      - name: Validate source and research contracts
         run: |
           set -euo pipefail
           python -m json.tool manifests/source-ingest.manifest.json >/dev/null
-          python -m py_compile scripts/source_ingest.py
+          python -m json.tool manifests/vendor-docs.manifest.json >/dev/null
+          python -m json.tool manifests/deep-research.stub.json >/dev/null
+          python -m py_compile \
+            scripts/source_ingest.py \
+            scripts/vendor_docs_ingest.py \
+            scripts/build_deep_research_stub.py \
+            scripts/research_corpus_sanity.py
           python scripts/source_ingest.py --smoke
+          python scripts/vendor_docs_ingest.py --smoke
+          python scripts/vendor_docs_ingest.py
+          python scripts/build_deep_research_stub.py --check
+          python scripts/research_corpus_sanity.py
 
       - name: Build deterministic source corpus
         run: |
@@ -85,7 +107,7 @@ jobs:
           )
           PY
 
-      - name: Upload source corpus
+      - name: Upload source and research contracts
         uses: actions/upload-artifact@v4
         with:
           name: samsung-sm-x400-source-ingest
@@ -94,5 +116,8 @@ jobs:
             build/source-ingest/source-chunks.jsonl
             build/source-ingest.log
             manifests/source-ingest.manifest.json
+            manifests/vendor-docs.manifest.json
+            manifests/deep-research.stub.json
+            manifests/deep-research.stub.b64
           if-no-files-found: error
           retention-days: 14
