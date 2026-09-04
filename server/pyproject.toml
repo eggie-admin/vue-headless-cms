@@ -10,6 +10,7 @@ dependencies = [
   "httpx>=0.28",
   "openai-agents>=0.14.0",
   "pydantic>=2.11",
+  "PyYAML>=6.0.2,<7",
   "redis>=6.0"
 ]
 
