@@ -93,6 +93,7 @@ jobs:
       - run: python -m json.tool manifests/cloud-ai.manifest.json >/dev/null
       - run: python -m json.tool analytics/event-catalog.json >/dev/null
       - run: python -m json.tool infra/edge/edge-security.manifest.json >/dev/null
+      - run: python -m json.tool infra/samsung/samsung-lite-profile.json >/dev/null
       - run: |
           python - <<'PY'
           import tomllib
@@ -106,3 +107,4 @@ jobs:
       - run: python scripts/cathedral_full_sanity.py
       - run: python scripts/edge_security_sanity.py
       - run: python scripts/cloud_provider_sanity.py
+      - run: python scripts/samsung_edge_sanity.py

@@ -14,8 +14,15 @@
     "build": "npm run build --workspace=video-forge-ui",
     "dev": "npm run dev --workspace=video-forge-ui",
     "preview": "npm run preview --workspace=video-forge-ui",
+    "format": "prettier --write \"forge-ui/**/*.{html,css,ts,vue,json}\"",
+    "format:check": "prettier --check \"forge-ui/**/*.{html,css,ts,vue,json}\"",
     "backend:install": "python3 -m pip install -e ../server",
     "backend:smoke": "python3 ../scripts/backend_smoke.py",
-    "backend:install-smoke": "npm run backend:install && npm run backend:smoke"
+    "backend:install-smoke": "npm run backend:install && npm run backend:smoke",
+    "samsung:smoke": "python3 ../scripts/samsung_benchmark.py --smoke",
+    "samsung:bench": "python3 ../scripts/samsung_benchmark.py --full"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
   }
 }

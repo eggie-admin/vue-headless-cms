@@ -9,9 +9,11 @@ on:
       - 'server/**'
       - 'fdroid/**'
       - 'release/**'
+      - 'infra/samsung/**'
+      - 'termux/**'
       - 'scripts/stage_fdroid_repo.py'
       - 'scripts/cathedral_full_sanity.py'
-      - 'termux/install-local-apk.sh'
+      - 'scripts/samsung_edge_sanity.py'
       - '.github/workflows/android-apk.yml'
   push:
     branches: [video-forge-usb-cache]
@@ -21,9 +23,11 @@ on:
       - 'server/**'
       - 'fdroid/**'
       - 'release/**'
+      - 'infra/samsung/**'
+      - 'termux/**'
       - 'scripts/stage_fdroid_repo.py'
       - 'scripts/cathedral_full_sanity.py'
-      - 'termux/install-local-apk.sh'
+      - 'scripts/samsung_edge_sanity.py'
       - '.github/workflows/android-apk.yml'
 
 permissions:
@@ -130,7 +134,9 @@ jobs:
             godot/addons/CathedralAndroid/bin/release/CathedralAndroid-release.aar
 
       - name: Run full Cathedral architecture gate
-        run: python scripts/cathedral_full_sanity.py
+        run: |
+          python scripts/cathedral_full_sanity.py
+          python scripts/samsung_edge_sanity.py
 
       - name: Configure Android export and ephemeral debug signing
         shell: bash
@@ -178,7 +184,7 @@ jobs:
             "$GITHUB_WORKSPACE/$APK_PATH"
           test -s "$APK_PATH"
 
-      - name: Verify APK, release identity, WebView plugin, CMS assets and 16 KiB alignment
+      - name: Verify APK, release identity, widget, WebView plugin, CMS assets and 16 KiB alignment
         shell: bash
         run: |
           set -euo pipefail
@@ -202,6 +208,8 @@ jobs:
           fi
           grep -q 'assets/cms/index.html' build/android/contents.txt
           grep -q 'org.godotengine.plugin.v2.CathedralAndroid' build/android/manifest.txt
+          grep -q 'art.eggiebagelface.cathedral.CathedralWidgetProvider' build/android/manifest.txt
+          grep -q 'com.termux.permission.RUN_COMMAND' build/android/manifest.txt
           sha256sum "$APK_PATH" | tee build/android/sha256.txt
 
       - name: Stage private F-Droid repo input

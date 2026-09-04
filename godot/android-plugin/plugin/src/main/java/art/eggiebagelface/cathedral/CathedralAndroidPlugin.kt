@@ -1,11 +1,16 @@
 package art.eggiebagelface.cathedral
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.webkit.CookieManager
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebMessage
@@ -22,6 +27,7 @@ import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
 import org.godotengine.godot.plugin.UsedByGodot
+import org.json.JSONObject
 
 class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
     companion object {
@@ -64,6 +70,61 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
         runOnHostThread {
             cmsView?.postWebMessage(WebMessage(message), Uri.parse(APP_ORIGIN))
         }
+    }
+
+    @UsedByGodot
+    fun openDeveloperOptions() {
+        runOnHostThread {
+            val hostActivity = activity ?: return@runOnHostThread
+            val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+            runCatching { hostActivity.startActivity(intent) }
+        }
+    }
+
+    @UsedByGodot
+    fun setImmersiveKiosk(enabled: Boolean) {
+        runOnHostThread {
+            val hostActivity = activity ?: return@runOnHostThread
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val controller = hostActivity.window.insetsController ?: return@runOnHostThread
+                if (enabled) {
+                    controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                    controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                } else {
+                    controller.show(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                hostActivity.window.decorView.systemUiVisibility = if (enabled) {
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                        View.SYSTEM_UI_FLAG_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                } else {
+                    View.SYSTEM_UI_FLAG_VISIBLE
+                }
+            }
+        }
+    }
+
+    @UsedByGodot
+    fun deviceSnapshot(): String {
+        val hostActivity = activity ?: return "{}"
+        val webView = WebViewCompat.getCurrentWebViewPackage(hostActivity)
+        val packageManager = hostActivity.packageManager
+        val payload = JSONObject()
+            .put("manufacturer", Build.MANUFACTURER)
+            .put("model", Build.MODEL)
+            .put("sdk", Build.VERSION.SDK_INT)
+            .put("abi", Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown")
+            .put("webview_package", webView?.packageName ?: "unknown")
+            .put("webview_version", webView?.versionName ?: "unknown")
+            .put("vulkan_feature", packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL))
+            .put("developer_options_control", "open_only")
+            .put("kiosk_control", "immersive_app_shell")
+        return payload.toString()
     }
 
     private fun ensureCmsView(): WebView {
