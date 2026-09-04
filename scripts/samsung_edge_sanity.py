@@ -12,6 +12,7 @@ CONTROL = ROOT / "termux/cathedral-control.sh"
 INSTALLER = ROOT / "termux/install-samsung-edge.sh"
 ADB_GUARD = ROOT / "scripts/samsung_background_guard_adb.sh"
 BENCH = ROOT / "scripts/samsung_benchmark.py"
+BENCH_CONFIG = ROOT / "infra/samsung/samsung-benchmark.yml"
 GODOT = ROOT / "godot/project.godot"
 APPS_PACKAGE = ROOT / "apps/package.json"
 ANDROID_CI = ROOT / ".github/workflows/android-apk.yml"
@@ -35,6 +36,7 @@ control = CONTROL.read_text(encoding="utf-8")
 installer = INSTALLER.read_text(encoding="utf-8")
 adb_guard = ADB_GUARD.read_text(encoding="utf-8")
 bench = BENCH.read_text(encoding="utf-8")
+bench_config = BENCH_CONFIG.read_text(encoding="utf-8")
 godot = GODOT.read_text(encoding="utf-8")
 package = json.loads(APPS_PACKAGE.read_text(encoding="utf-8"))
 android_ci = ANDROID_CI.read_text(encoding="utf-8")
@@ -62,7 +64,9 @@ check("RELEASE_WAKE_LOCK_ON_STOP=true" in installer, "wake-lock stop policy must
 check("RUN_IN_BACKGROUND allow" in adb_guard and "RUN_ANY_IN_BACKGROUND allow" in adb_guard, "ADB background app-op recovery missing")
 check("set-standby-bucket" in adb_guard and "active" in adb_guard, "ADB active standby bucket guard missing")
 check("eval " not in control and "sh -c" not in control and "case \"${1:-status}\"" in control, "control script must remain allowlisted/no eval")
-check("http://127.0.0.1:8000/api/health" in bench and "http://127.0.0.1:11434/api/tags" in bench, "benchmark must probe loopback services")
+check("DEFAULT_CONFIG" in bench and "samsung-benchmark.yml" in bench, "benchmark runner must load canonical YAML config")
+check("http://127.0.0.1:8000/api/health" in bench_config and "http://127.0.0.1:11434/api/tags" in bench_config, "benchmark YAML must probe loopback services")
+check("public_network_targets: false" in bench_config, "benchmark YAML must forbid public network targets")
 check(package.get("devDependencies", {}).get("prettier") == "3.6.2", "Prettier must be pinned")
 check(package.get("scripts", {}).get("samsung:guard:adb") == "bash ../scripts/samsung_background_guard_adb.sh", "npm Samsung guard helper missing")
 check("samsung_edge_sanity.py" in forge_ci, "Forge CI Samsung gate missing")
