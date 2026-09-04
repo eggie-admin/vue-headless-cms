@@ -9,15 +9,15 @@ Description: |-
   tablet smoke testing. It uses Godot as the fullscreen interactive cage and
   communicates with the local FastAPI control plane through typed contracts.
 
-  The CMS is bundled into the APK and displayed by the CathedralAndroid
-  Godot Android v2 WebView plugin. Python remains outside the APK in the
-  Termux edge lane.
+  The Vue CMS is bundled into the APK and displayed by the CathedralAndroid
+  Godot Android v2 WebView plugin. CMS documents persist in the Termux Python
+  edge through revisioned SQLite storage. Python remains outside the APK.
 
   This metadata is for a private F-Droid repository lane. It is not a claim of
   acceptance into the official F-Droid repository.
 SourceCode: https://github.com/eggie-admin/vue-headless-cms
-CurrentVersion: 0.5.0-dev
-CurrentVersionCode: 5
+CurrentVersion: 0.6.0-dev
+CurrentVersionCode: 6
 UpdateCheckMode: Static
 MaintainerNotes: |-
   Private-repository metadata only.
