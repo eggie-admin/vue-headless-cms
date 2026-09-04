@@ -21,7 +21,9 @@
     "backend:install-smoke": "npm run backend:install && npm run backend:smoke",
     "samsung:smoke": "python3 ../scripts/samsung_benchmark.py --smoke",
     "samsung:bench": "python3 ../scripts/samsung_benchmark.py --full",
-    "samsung:guard:adb": "bash ../scripts/samsung_background_guard_adb.sh"
+    "samsung:guard:adb": "bash ../scripts/samsung_background_guard_adb.sh",
+    "source:ingest": "python3 ../scripts/source_ingest.py --root .. --output ../state/source-ingest",
+    "source:ingest:smoke": "python3 ../scripts/source_ingest.py --smoke"
   },
   "devDependencies": {
     "prettier": "3.6.2"
