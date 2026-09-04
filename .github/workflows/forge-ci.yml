@@ -88,6 +88,7 @@ jobs:
       - run: python -m json.tool schemas/feed-assessment.schema.json >/dev/null
       - run: python -m json.tool schemas/boss-ai-manifest.schema.json >/dev/null
       - run: python -m json.tool manifests/boss-ai.manifest.json >/dev/null
+      - run: python -m json.tool manifests/cloud-ai.manifest.json >/dev/null
       - run: python -m json.tool analytics/event-catalog.json >/dev/null
       - run: python -m json.tool infra/edge/edge-security.manifest.json >/dev/null
       - run: |
@@ -102,3 +103,4 @@ jobs:
       - run: python scripts/boss_ai_sanity.py
       - run: python scripts/cathedral_full_sanity.py
       - run: python scripts/edge_security_sanity.py
+      - run: python scripts/cloud_provider_sanity.py
