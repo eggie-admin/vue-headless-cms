@@ -23,6 +23,8 @@ ALLOWED_EVENTS = {
     "feed_item_new",
     "boss_provider_assessed",
     "boss_provider_failed",
+    "cms_document_saved",
+    "cms_document_deleted",
 }
 
 BLOCKED_PROPERTY_FRAGMENTS = {

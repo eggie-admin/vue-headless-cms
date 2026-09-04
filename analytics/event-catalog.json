@@ -29,6 +29,14 @@
       "surface",
       "version"
     ],
+    "cms_document_deleted": [
+      "document_id"
+    ],
+    "cms_document_saved": [
+      "document_id",
+      "kind",
+      "revision"
+    ],
     "control_plane_health": [
       "surface",
       "ok",
@@ -85,5 +93,5 @@
     "feed_summary"
   ],
   "privacy": "sanitized-backend-only",
-  "version": "1.1.0"
+  "version": "1.2.0"
 }
