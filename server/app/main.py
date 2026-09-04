@@ -5,6 +5,7 @@ from contextlib import suppress
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.wsgi import WSGIMiddleware
@@ -16,7 +17,15 @@ from app.boss.service import poll_feed_source
 from app.flask_compat import compat_app
 from app.telemetry import emit_event
 
-app = FastAPI(title="Video Forge Control", version="0.3.0")
+app = FastAPI(title="Video Forge Control", version="0.5.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://appassets.androidplatform.net"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 
 
 class AgentRequest(BaseModel):
@@ -47,7 +56,7 @@ if WEB_DIST.is_dir():
 
 @app.on_event("startup")
 async def startup_event() -> None:
-    await emit_event("cathedral_boot", {"surface": "python-control-plane", "version": "0.3.0"})
+    await emit_event("cathedral_boot", {"surface": "python-control-plane", "version": "0.5.0"})
 
 
 @app.get("/api/health")

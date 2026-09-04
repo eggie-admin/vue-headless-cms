@@ -1,27 +1,39 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { attachLegacyWindowHost } from './lib/jqueryWindowHost'
+import { isPackagedCms, postNative } from './lib/cathedralBridge'
 
 const apiState = ref<'connecting' | 'online' | 'offline'>('connecting')
 const avatarState = ref('idle')
 const cacheState = ref('unknown')
 const progress = ref(0)
 const cleanupFns: Array<() => void> = []
+const packagedCms = isPackagedCms()
+const apiBase = packagedCms ? 'http://127.0.0.1:8000' : ''
+
 let socket: WebSocket | null = null
+let healthTimer: number | null = null
 
 async function refreshHealth() {
   try {
-    const response = await fetch('/api/health')
+    const response = await fetch(`${apiBase}/api/health`, { cache: 'no-store' })
     if (!response.ok) throw new Error(String(response.status))
     const data = await response.json()
     apiState.value = 'online'
     cacheState.value = data.cache_state ?? 'unknown'
+    if (typeof data.progress === 'number') progress.value = data.progress
+    if (typeof data.avatar_state === 'string') avatarState.value = data.avatar_state
   } catch {
     apiState.value = 'offline'
   }
 }
 
 function connectEvents() {
+  if (packagedCms) {
+    healthTimer = window.setInterval(refreshHealth, 1000)
+    return
+  }
+
   const scheme = location.protocol === 'https:' ? 'wss' : 'ws'
   socket = new WebSocket(`${scheme}://${location.host}/ws/events`)
   socket.onmessage = (event) => {
@@ -35,10 +47,15 @@ function connectEvents() {
   }
 }
 
+function requestGodotWindow(panel: string) {
+  postNative({ type: 'godot.window.open', payload: { panel } })
+}
+
 onMounted(async () => {
   document.querySelectorAll<HTMLElement>('[data-legacy-window]').forEach((el) => {
     cleanupFns.push(attachLegacyWindowHost(el, { containment: '#window-cage' }))
   })
+  postNative({ type: 'cms.ready', payload: { version: '0.5.0-dev' } })
   await refreshHealth()
   connectEvents()
 })
@@ -46,6 +63,7 @@ onMounted(async () => {
 onUnmounted(() => {
   cleanupFns.splice(0).forEach((fn) => fn())
   socket?.close()
+  if (healthTimer !== null) window.clearInterval(healthTimer)
 })
 </script>
 
@@ -69,6 +87,7 @@ onUnmounted(() => {
           <label>Render progress</label>
           <progress :value="progress" max="100" />
           <small>{{ progress.toFixed(0) }}%</small>
+          <button type="button" @click="requestGodotWindow('renderQueue')">Open Godot render window</button>
         </div>
       </article>
 
