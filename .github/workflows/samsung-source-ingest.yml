@@ -16,6 +16,20 @@ on:
       - 'schemas/**'
       - 'analytics/**'
       - 'docs/**'
+  pull_request:
+    branches: [samsung-sm-x400]
+    paths:
+      - 'apps/package.json'
+      - 'scripts/source_ingest.py'
+      - 'manifests/source-ingest.manifest.json'
+      - '.github/workflows/samsung-source-ingest.yml'
+      - 'server/**'
+      - 'godot/**'
+      - 'termux/**'
+      - 'infra/**'
+      - 'schemas/**'
+      - 'analytics/**'
+      - 'docs/**'
 
 permissions:
   contents: read
