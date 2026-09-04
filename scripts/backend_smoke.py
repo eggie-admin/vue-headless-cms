@@ -23,6 +23,7 @@ def request_json(
     method: str = "GET",
     payload: dict[str, object] | None = None,
     token: str | None = None,
+    confirmation: str | None = None,
 ) -> tuple[int, dict[str, object]]:
     data = None
     headers = {"Accept": "application/json"}
@@ -31,10 +32,36 @@ def request_json(
         headers["Content-Type"] = "application/json"
     if token:
         headers["X-Cathedral-Token"] = token
+    if confirmation:
+        headers["X-Cathedral-Confirm"] = confirmation
     request = Request(BASE_URL + path, data=data, headers=headers, method=method)
     with urlopen(request, timeout=2) as response:
         body = json.loads(response.read().decode("utf-8"))
         return response.status, body
+
+
+def expect_http_error(
+    code: int,
+    path: str,
+    *,
+    method: str = "GET",
+    payload: dict[str, object] | None = None,
+    token: str | None = None,
+    confirmation: str | None = None,
+) -> None:
+    try:
+        request_json(
+            path,
+            method=method,
+            payload=payload,
+            token=token,
+            confirmation=confirmation,
+        )
+    except HTTPError as exc:
+        if exc.code != code:
+            raise RuntimeError(f"{path} returned {exc.code}, expected {code}") from exc
+    else:
+        raise RuntimeError(f"{path} unexpectedly succeeded, expected HTTP {code}")
 
 
 def main() -> int:
@@ -45,6 +72,13 @@ def main() -> int:
         env["CMS_STATE_DB"] = str(tmp_path / "cms.sqlite3")
         env["CMS_WRITE_TOKEN_FILE"] = str(tmp_path / "cms-token.txt")
         env["VIDEO_FORGE_CMS_TOKEN"] = SMOKE_TOKEN
+        for name in (
+            "GOOGLE_CLOUD_PROJECT",
+            "GOOGLE_VEO_OUTPUT_GCS_URI",
+            "GOOGLE_DRIVE_VAULT_FOLDER_ID",
+            "HF_TOKEN",
+        ):
+            env.pop(name, None)
 
         command = [
             sys.executable,
@@ -91,6 +125,27 @@ def main() -> int:
                 if health is None or health.get("ok") is not True or health.get("cms") != "persistent":
                     raise RuntimeError(f"unexpected health payload: {health!r}")
 
+                status, providers = request_json("/api/cloud/providers")
+                google = providers.get("google")
+                huggingface = providers.get("huggingface")
+                if (
+                    status != 200
+                    or providers.get("ok") is not True
+                    or not isinstance(google, dict)
+                    or not isinstance(huggingface, dict)
+                    or google.get("auth_mode") != "adc_or_workload_identity_federation"
+                    or google.get("project_configured") is not False
+                    or huggingface.get("license_gate") is not True
+                ):
+                    raise RuntimeError(f"cloud readiness smoke failed: {providers!r}")
+
+                expect_http_error(
+                    401,
+                    "/api/cloud/google/veo/generate",
+                    method="POST",
+                    payload={"prompt": "CI must never reach a billable provider"},
+                )
+
                 status, documents = request_json("/api/cms/documents")
                 seeded = documents.get("documents")
                 if status != 200 or not isinstance(seeded, list) or len(seeded) < 3:
@@ -102,17 +157,12 @@ def main() -> int:
                     "payload": {"status": "green"},
                 }
 
-                try:
-                    request_json(
-                        "/api/cms/documents/backend-smoke",
-                        method="PUT",
-                        payload=payload,
-                    )
-                except HTTPError as exc:
-                    if exc.code != 401:
-                        raise RuntimeError(f"unauthenticated CMS write returned {exc.code}, expected 401") from exc
-                else:
-                    raise RuntimeError("unauthenticated CMS write unexpectedly succeeded")
+                expect_http_error(
+                    401,
+                    "/api/cms/documents/backend-smoke",
+                    method="PUT",
+                    payload=payload,
+                )
 
                 status, created = request_json(
                     "/api/cms/documents/backend-smoke",
@@ -137,6 +187,7 @@ def main() -> int:
                 print(
                     "BACKEND_SMOKE_GREEN "
                     f"health={health.get('ok')} cms={health.get('cms')} "
+                    f"cloud_router=ready veo_unauth=401 hf_license_gate=true "
                     f"seeded={len(seeded)} write_auth=401 authenticated_revision=1"
                 )
                 return 0
