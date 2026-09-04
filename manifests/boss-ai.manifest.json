@@ -5,7 +5,9 @@
       "normalize_feed",
       "dedupe_feed",
       "plan_provider_fanout",
-      "low_risk_local_assessment"
+      "low_risk_local_assessment",
+      "inspect_huggingface_metadata",
+      "poll_cloud_operation"
     ],
     "explicit_confirmation": [
       "cleanup_cache",
@@ -14,10 +16,50 @@
       "publish",
       "change_credentials",
       "store_release",
-      "physical_mount_or_eject"
+      "physical_mount_or_eject",
+      "submit_google_veo",
+      "archive_to_google_drive",
+      "download_or_activate_huggingface_model"
     ]
   },
   "canonical_format": "json",
+  "cloud_pipeline": {
+    "authority": "python_fastapi",
+    "flow": [
+      "rss_atom_ingest",
+      "boss_json_normalize",
+      "provider_assessment",
+      "python_policy",
+      "operator_confirmation",
+      "vertex_veo",
+      "gcs_stage",
+      "drive_vault",
+      "cms_manifest_update"
+    ],
+    "human_sentry": "google_via_cloudflare_access",
+    "identity_for_google_apis": "adc_or_workload_identity_federation",
+    "model_supply": {
+      "automatic_download": false,
+      "license_gate": true,
+      "provider": "huggingface"
+    },
+    "vault": {
+      "confirmation_required": true,
+      "provider": "google_drive",
+      "role": "durable_vault",
+      "source_boundary": "configured_veo_gcs_prefix_only"
+    },
+    "video_generation": {
+      "confirmation_required": true,
+      "location": "us-central1",
+      "models": [
+        "veo-3.1-generate-001",
+        "veo-3.1-fast-generate-001"
+      ],
+      "provider": "google_vertex_ai",
+      "stage": "google_cloud_storage"
+    }
+  },
   "doctrine": {
     "cloud_reasoning": "openai",
     "gpu_workers": "modal",
@@ -44,7 +86,7 @@
     ]
   },
   "id": "videoForge.bossAi",
-  "manifest_version": "1.0.0",
+  "manifest_version": "1.1.0",
   "name": "Video Forge Boss AI Toolchain",
   "observability": {
     "backend_only": true,
@@ -52,7 +94,10 @@
       "feed_polled",
       "feed_item_new",
       "boss_provider_assessed",
-      "boss_provider_failed"
+      "boss_provider_failed",
+      "cloud_veo_submitted",
+      "cloud_drive_archived",
+      "hf_model_inspected"
     ],
     "sanitized": true
   },
@@ -99,6 +144,9 @@
     "provider_output_validation",
     "feed_prompt_injection_boundary",
     "auto_fanout_off_by_default",
+    "cloud_provider_sanity",
+    "cloud_cost_confirmation",
+    "huggingface_license_gate",
     "architecture_sanity",
     "github_ci_green",
     "samsung_runtime_smoke_before_merge"
@@ -143,16 +191,28 @@
       "passwords",
       "private_keys",
       "session_cookies"
-    ]
+    ],
+    "transport_rule": "https_headers_only"
   },
   "services": {
+    "google_drive": {
+      "authoritative": false,
+      "role": "durable_vault",
+      "status": "scaffolded"
+    },
+    "google_vertex_veo": {
+      "authoritative": false,
+      "role": "video_generation",
+      "status": "scaffolded"
+    },
     "huggingface": {
+      "automatic_download": false,
       "may_receive": [
         "licensed_model_metadata",
         "approved_training_artifacts"
       ],
       "role": "model_supply_chain",
-      "status": "planned"
+      "status": "scaffolded"
     },
     "mixpanel": {
       "authoritative": false,
