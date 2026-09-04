@@ -13,6 +13,9 @@
   "scripts": {
     "build": "npm run build --workspace=video-forge-ui",
     "dev": "npm run dev --workspace=video-forge-ui",
-    "preview": "npm run preview --workspace=video-forge-ui"
+    "preview": "npm run preview --workspace=video-forge-ui",
+    "backend:install": "python3 -m pip install -e ../server",
+    "backend:smoke": "python3 ../scripts/backend_smoke.py",
+    "backend:install-smoke": "npm run backend:install && npm run backend:smoke"
   }
 }
