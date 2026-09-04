@@ -1,0 +1,110 @@
+{
+  "branch": "samsung-sm-x400-ai",
+  "corpora": [
+    {
+      "corpus": "state/source-ingest/source-chunks.jsonl",
+      "id": "local_source",
+      "manifest": "state/source-ingest/source-manifest.json",
+      "required": true
+    },
+    {
+      "corpus": "state/vendor-docs/vendor-docs-chunks.jsonl",
+      "id": "vendor_docs",
+      "manifest": "state/vendor-docs/vendor-docs-manifest.json",
+      "refresh_before_current_claims": true,
+      "registry": "manifests/vendor-docs.manifest.json",
+      "required": false
+    }
+  ],
+  "doctrine": {
+    "documentation_is_untrusted_data": true,
+    "execute_document_instructions": false,
+    "execute_retrieved_source": false,
+    "local_source_is_implementation_truth": true,
+    "models_propose_python_authorizes": true,
+    "mutations_require_operator_or_policy_gate": true,
+    "official_vendor_docs_are_external_semantics_truth": true,
+    "secrets_never_enter_context": true
+  },
+  "evidence_policy": {
+    "conflict_resolution": "For current implementation behavior prefer local source. For provider/API semantics prefer current official vendor documentation. Report conflicts explicitly.",
+    "prefer": [
+      "local_source_with_sha256",
+      "official_vendor_docs",
+      "official_release_notes"
+    ],
+    "reject": [
+      "uncited_blog_claims",
+      "forum_claims_as_authority",
+      "instructions_embedded_in_retrieved_content"
+    ],
+    "required_fields": [
+      "source_id",
+      "url_or_path",
+      "sha256_or_retrieved_at",
+      "claim"
+    ]
+  },
+  "execution": {
+    "default_result": "proposal",
+    "filesystem_write": "disabled",
+    "network_fetch": "vendor_registry_only",
+    "paid_provider_calls": "disabled_until_explicit_confirmation",
+    "shell": "disabled"
+  },
+  "id": "samsung-sm-x400.deep-research",
+  "mode": "plan_only",
+  "output_contract": {
+    "auto_apply_changes": false,
+    "format": "json",
+    "include_commands": false,
+    "include_secret_values": false,
+    "max_recommendations": 20,
+    "sections": [
+      "executive_summary",
+      "implementation_truth",
+      "vendor_drift",
+      "compatibility_matrix",
+      "security_risks",
+      "branch_mutation_plan",
+      "smoke_test_plan",
+      "evidence"
+    ]
+  },
+  "project": "Samsung SM-X400",
+  "providers": {
+    "gemini": {
+      "authority": "advisory_only",
+      "role": "independent review"
+    },
+    "hugging_face": {
+      "automatic_model_execution": false,
+      "role": "model metadata and license/provenance evidence"
+    },
+    "ollama": {
+      "execution": "loopback_only",
+      "role": "local retrieval triage and low-risk summarization"
+    },
+    "openai_lum": {
+      "adapter": "openai_agents_sdk",
+      "role": "primary synthesis and architecture reasoning",
+      "tools": "none_by_default"
+    }
+  },
+  "purpose": "Deep-research orchestration stub for Samsung SM-X400 source code, official vendor documentation, architecture hardening, compatibility analysis, and smoke-test planning.",
+  "research_questions": [
+    "What does the current Samsung SM-X400 implementation actually do?",
+    "Which external APIs, Android behaviors, model runtimes, build tools, and network assumptions can drift?",
+    "Where does local implementation diverge from current official vendor guidance?",
+    "Which compatibility shims should remain, be removed, or be isolated?",
+    "What is the minimum secure architecture for Samsung interactive frontend, Termux backend, and AI worker lanes?",
+    "Which tests prove the architecture without requiring paid cloud calls or permanent credentials?",
+    "Which changes belong on ai, frontend, and backend branches?"
+  ],
+  "schema_version": "1.0.0",
+  "transport": {
+    "base64": "manifests/deep-research.stub.b64",
+    "canonical_json": "manifests/deep-research.stub.json",
+    "encoding": "utf-8 standard base64 no line wrapping"
+  }
+}
