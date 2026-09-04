@@ -56,6 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf build/source-ingest
+          mkdir -p build
           python scripts/source_ingest.py --root . --output build/source-ingest | tee build/source-ingest.log
           python - <<'PY'
           import hashlib
