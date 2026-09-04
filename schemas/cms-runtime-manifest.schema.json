@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://video-forge.local/schemas/cms-runtime-manifest.schema.json",
+  "title": "Video Forge CMS Runtime Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["revision", "documents"],
+  "properties": {
+    "revision": {"type": "integer", "minimum": 0},
+    "documents": {"type": "array", "items": {"$ref": "cms-document.schema.json"}}
+  }
+}
