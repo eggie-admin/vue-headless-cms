@@ -18,6 +18,8 @@ SERVICE_DIR="$PREFIX/var/service/video-forge-cathedral"
 PORT="${VIDEO_FORGE_PORT:-8000}"
 HEALTH_URL="http://127.0.0.1:${PORT}/api/health"
 PID_FILE="$STATE_DIR/cathedral.pid"
+WAKE_MARKER="$STATE_DIR/cathedral-wakelock"
+RELEASE_WAKE_LOCK_ON_STOP="${RELEASE_WAKE_LOCK_ON_STOP:-true}"
 
 require_run_script() {
   [[ -x "$RUN_SCRIPT" ]] || {
@@ -28,6 +30,20 @@ require_run_script() {
 
 health() {
   curl -fsS --max-time 2 "$HEALTH_URL" >/dev/null 2>&1
+}
+
+acquire_background_guard() {
+  if command -v termux-wake-lock >/dev/null 2>&1; then
+    termux-wake-lock >/dev/null 2>&1 || true
+    : >"$WAKE_MARKER"
+  fi
+}
+
+release_background_guard() {
+  if [[ "$RELEASE_WAKE_LOCK_ON_STOP" == "true" && -e "$WAKE_MARKER" ]]; then
+    command -v termux-wake-unlock >/dev/null 2>&1 && termux-wake-unlock >/dev/null 2>&1 || true
+    rm -f "$WAKE_MARKER"
+  fi
 }
 
 start_fallback() {
@@ -41,7 +57,7 @@ start_fallback() {
 
 start_service() {
   require_run_script
-  command -v termux-wake-lock >/dev/null 2>&1 && termux-wake-lock >/dev/null 2>&1 || true
+  acquire_background_guard
   if health; then
     echo 'cathedral already online'
     return 0
@@ -73,14 +89,17 @@ stop_service() {
     echo 'cathedral still responding' >&2
     exit 1
   fi
+  release_background_guard
   echo 'cathedral offline'
 }
 
 status_service() {
+  wake_guard=false
+  [[ -e "$WAKE_MARKER" ]] && wake_guard=true
   if health; then
-    printf '{"ok":true,"state":"online","health":"%s"}\n' "$HEALTH_URL"
+    printf '{"ok":true,"state":"online","wake_guard":%s,"health":"%s"}\n' "$wake_guard" "$HEALTH_URL"
   else
-    printf '{"ok":true,"state":"offline","health":"%s"}\n' "$HEALTH_URL"
+    printf '{"ok":true,"state":"offline","wake_guard":%s,"health":"%s"}\n' "$wake_guard" "$HEALTH_URL"
   fi
 }
 
