@@ -4,17 +4,23 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - 'apps/**'
       - 'godot/**'
+      - 'server/app/main.py'
       - 'fdroid/**'
       - 'scripts/stage_fdroid_repo.py'
+      - 'scripts/cathedral_full_sanity.py'
       - 'termux/install-local-apk.sh'
       - '.github/workflows/android-apk.yml'
   push:
     branches: [video-forge-usb-cache]
     paths:
+      - 'apps/**'
       - 'godot/**'
+      - 'server/app/main.py'
       - 'fdroid/**'
       - 'scripts/stage_fdroid_repo.py'
+      - 'scripts/cathedral_full_sanity.py'
       - 'termux/install-local-apk.sh'
       - '.github/workflows/android-apk.yml'
 
@@ -44,6 +50,14 @@ jobs:
         with:
           python-version: '3.14'
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.18.0'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
       - name: Install Android SDK components
         shell: bash
         run: |
@@ -51,7 +65,7 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" 'platform-tools' 'build-tools;35.0.1' 'platforms;android-35' 'platforms;android-36'
+          "$SDKMANAGER" 'platform-tools' 'build-tools;36.1.0' 'platforms;android-36'
 
       - name: Install verified Godot 4.7.2 editor and export templates
         shell: bash
@@ -81,13 +95,43 @@ jobs:
           mkdir -p "$TEMPLATE_DIR"
           cp -a templates-unpack/templates/. "$TEMPLATE_DIR/"
           test -f "$TEMPLATE_DIR/android_debug.apk"
+          test -f "$TEMPLATE_DIR/android_source.zip"
 
-      - name: Configure Android export and signing
+      - name: Build packaged Vue CMS
         shell: bash
-        env:
-          VIDEO_FORGE_ANDROID_KEYSTORE_B64: ${{ secrets.VIDEO_FORGE_ANDROID_KEYSTORE_B64 }}
-          VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS: ${{ secrets.VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS }}
-          VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          npm install --global npm@12.0.2
+          cd apps
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build --workspace=video-forge-ui
+          test -f forge-ui/dist/index.html
+
+      - name: Build Godot Android v2 WebView plugin
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf godot/android-plugin/plugin/src/main/assets/cms
+          mkdir -p godot/android-plugin/plugin/src/main/assets/cms
+          cp -a apps/forge-ui/dist/. godot/android-plugin/plugin/src/main/assets/cms/
+          gradle -p godot/android-plugin :plugin:assemble
+          test -f godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-debug.aar
+          test -f godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-release.aar
+
+          rm -rf godot/addons/CathedralAndroid
+          mkdir -p godot/addons/CathedralAndroid/bin/debug godot/addons/CathedralAndroid/bin/release
+          cp -a godot/android-plugin/plugin/export_scripts_template/. godot/addons/CathedralAndroid/
+          cp godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-debug.aar \
+            godot/addons/CathedralAndroid/bin/debug/CathedralAndroid-debug.aar
+          cp godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-release.aar \
+            godot/addons/CathedralAndroid/bin/release/CathedralAndroid-release.aar
+
+      - name: Run full Cathedral architecture gate
+        run: python scripts/cathedral_full_sanity.py
+
+      - name: Configure Android export and ephemeral debug signing
+        shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.config/godot" build/android
@@ -100,28 +144,19 @@ jobs:
           EOF
 
           KEYSTORE_PATH="$RUNNER_TEMP/video-forge-debug.keystore"
-          if [[ -n "${VIDEO_FORGE_ANDROID_KEYSTORE_B64:-}" && -n "${VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS:-}" && -n "${VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD:-}" ]]; then
-            printf '%s' "$VIDEO_FORGE_ANDROID_KEYSTORE_B64" | base64 --decode > "$KEYSTORE_PATH"
-            chmod 600 "$KEYSTORE_PATH"
-            keytool -list -keystore "$KEYSTORE_PATH" -storepass "$VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD" -alias "$VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS" >/dev/null
-            echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=$VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS" >> "$GITHUB_ENV"
-            echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=$VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
-            echo 'stable-secret' | tee build/android/signing-mode.txt
-          else
-            keytool -genkeypair \
-              -keystore "$KEYSTORE_PATH" \
-              -storepass android \
-              -alias androiddebugkey \
-              -keypass android \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -dname 'CN=Video Forge Debug,O=EggieBagelFace,C=US'
-            echo 'GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey' >> "$GITHUB_ENV"
-            echo 'GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android' >> "$GITHUB_ENV"
-            echo 'ephemeral-ci' | tee build/android/signing-mode.txt
-          fi
+          keytool -genkeypair \
+            -keystore "$KEYSTORE_PATH" \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname 'CN=Video Forge Debug,O=EggieBagelFace,C=US'
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+          echo 'GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey' >> "$GITHUB_ENV"
+          echo 'GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android' >> "$GITHUB_ENV"
+          echo 'ephemeral-ci' | tee build/android/signing-mode.txt
 
       - name: Import and validate Godot project
         shell: bash
@@ -130,30 +165,35 @@ jobs:
           "$GODOT_BIN" --version
           "$GODOT_BIN" --headless --editor --path godot --quit
 
-      - name: Export signed Android debug APK
+      - name: Install Gradle template and export signed Android debug APK
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p build/android
           "$GODOT_BIN" --headless --path godot \
+            --install-android-build-template \
             --export-debug 'Android Debug' \
             "$GITHUB_WORKSPACE/$APK_PATH"
           test -s "$APK_PATH"
 
-      - name: Verify APK signature, arm64 payload and 16 KiB alignment
+      - name: Verify APK, WebView plugin, CMS assets and 16 KiB alignment
         shell: bash
         run: |
           set -euo pipefail
-          BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.1"
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.1.0"
           "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK_PATH" | tee build/android/signature.txt
           "$BUILD_TOOLS/zipalign" -c -P 16 -v 4 "$APK_PATH" | tee build/android/zipalign.txt
           "$BUILD_TOOLS/aapt" dump badging "$APK_PATH" | tee build/android/badging.txt
+          "$BUILD_TOOLS/aapt" dump xmltree "$APK_PATH" AndroidManifest.xml | tee build/android/manifest.txt
           unzip -l "$APK_PATH" | tee build/android/contents.txt
+
           grep -q 'lib/arm64-v8a/' build/android/contents.txt
           if grep -qE 'lib/(armeabi-v7a|x86|x86_64)/' build/android/contents.txt; then
             echo 'Unexpected non-arm64 native ABI found in APK' >&2
             exit 1
           fi
+          grep -q 'assets/cms/index.html' build/android/contents.txt
+          grep -q 'org.godotengine.plugin.v2.CathedralAndroid' build/android/manifest.txt
           sha256sum "$APK_PATH" | tee build/android/sha256.txt
 
       - name: Stage private F-Droid repo input
@@ -164,7 +204,7 @@ jobs:
             --apk "$APK_PATH" \
             --output build/fdroid-stage \
             --package art.eggiebagelface.videoforge.dev \
-            --version-code 4
+            --version-code 5
 
       - name: Upload Android debug APK and private F-Droid staging bundle
         uses: actions/upload-artifact@v4
@@ -176,6 +216,7 @@ jobs:
             build/android/signature.txt
             build/android/zipalign.txt
             build/android/badging.txt
+            build/android/manifest.txt
             build/android/signing-mode.txt
             build/fdroid-stage/**
           if-no-files-found: error

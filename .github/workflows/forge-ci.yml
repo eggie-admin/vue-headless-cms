@@ -10,6 +10,7 @@ on:
       - 'schemas/**'
       - 'manifests/**'
       - 'analytics/**'
+      - 'fdroid/**'
       - 'termux/**'
       - 'scripts/**'
       - 'tests/**'
@@ -27,6 +28,7 @@ on:
       - 'schemas/**'
       - 'manifests/**'
       - 'analytics/**'
+      - 'fdroid/**'
       - 'termux/**'
       - 'scripts/**'
       - 'tests/**'
@@ -88,3 +90,4 @@ jobs:
       - run: python scripts/architecture_sanity.py
       - run: python scripts/build_boss_manifest.py --check
       - run: python scripts/boss_ai_sanity.py
+      - run: python scripts/cathedral_full_sanity.py

@@ -11,6 +11,9 @@ size/viewport_height=800
 stretch/mode="canvas_items"
 subwindows/embed_subwindows=true
 
+[editor_plugins]
+enabled=PackedStringArray("res://addons/CathedralAndroid/plugin.cfg")
+
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
