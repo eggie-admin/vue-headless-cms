@@ -5,11 +5,17 @@ on:
   pull_request:
     paths:
       - 'godot/**'
+      - 'fdroid/**'
+      - 'scripts/stage_fdroid_repo.py'
+      - 'termux/install-local-apk.sh'
       - '.github/workflows/android-apk.yml'
   push:
     branches: [video-forge-usb-cache]
     paths:
       - 'godot/**'
+      - 'fdroid/**'
+      - 'scripts/stage_fdroid_repo.py'
+      - 'termux/install-local-apk.sh'
       - '.github/workflows/android-apk.yml'
 
 permissions:
@@ -25,8 +31,6 @@ jobs:
       GODOT_EDITOR_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
       GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
       APK_PATH: build/android/video-forge-cathedral-debug.apk
-      GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
-      GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
 
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +40,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
       - name: Install Android SDK components
         shell: bash
         run: |
@@ -43,7 +51,7 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" 'platform-tools' 'build-tools;35.0.1' 'platforms;android-35'
+          "$SDKMANAGER" 'platform-tools' 'build-tools;35.0.1' 'platforms;android-35' 'platforms;android-36'
 
       - name: Install verified Godot 4.7.2 editor and export templates
         shell: bash
@@ -74,11 +82,15 @@ jobs:
           cp -a templates-unpack/templates/. "$TEMPLATE_DIR/"
           test -f "$TEMPLATE_DIR/android_debug.apk"
 
-      - name: Configure Android export and debug signing
+      - name: Configure Android export and signing
         shell: bash
+        env:
+          VIDEO_FORGE_ANDROID_KEYSTORE_B64: ${{ secrets.VIDEO_FORGE_ANDROID_KEYSTORE_B64 }}
+          VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS: ${{ secrets.VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS }}
+          VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD }}
         run: |
           set -euo pipefail
-          mkdir -p "$HOME/.config/godot"
+          mkdir -p "$HOME/.config/godot" build/android
           cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
@@ -87,16 +99,29 @@ jobs:
           export/android/java_sdk_path = "$JAVA_HOME"
           EOF
 
-          keytool -genkeypair \
-            -keystore "$RUNNER_TEMP/video-forge-debug.keystore" \
-            -storepass android \
-            -alias androiddebugkey \
-            -keypass android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname 'CN=Video Forge Debug,O=EggieBagelFace,C=US'
-          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$RUNNER_TEMP/video-forge-debug.keystore" >> "$GITHUB_ENV"
+          KEYSTORE_PATH="$RUNNER_TEMP/video-forge-debug.keystore"
+          if [[ -n "${VIDEO_FORGE_ANDROID_KEYSTORE_B64:-}" && -n "${VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS:-}" && -n "${VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD:-}" ]]; then
+            printf '%s' "$VIDEO_FORGE_ANDROID_KEYSTORE_B64" | base64 --decode > "$KEYSTORE_PATH"
+            chmod 600 "$KEYSTORE_PATH"
+            keytool -list -keystore "$KEYSTORE_PATH" -storepass "$VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD" -alias "$VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS" >/dev/null
+            echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=$VIDEO_FORGE_ANDROID_KEYSTORE_ALIAS" >> "$GITHUB_ENV"
+            echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=$VIDEO_FORGE_ANDROID_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo 'stable-secret' | tee build/android/signing-mode.txt
+          else
+            keytool -genkeypair \
+              -keystore "$KEYSTORE_PATH" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname 'CN=Video Forge Debug,O=EggieBagelFace,C=US'
+            echo 'GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey' >> "$GITHUB_ENV"
+            echo 'GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android' >> "$GITHUB_ENV"
+            echo 'ephemeral-ci' | tee build/android/signing-mode.txt
+          fi
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
 
       - name: Import and validate Godot project
         shell: bash
@@ -131,7 +156,17 @@ jobs:
           fi
           sha256sum "$APK_PATH" | tee build/android/sha256.txt
 
-      - name: Upload Android debug APK
+      - name: Stage private F-Droid repo input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/stage_fdroid_repo.py \
+            --apk "$APK_PATH" \
+            --output build/fdroid-stage \
+            --package art.eggiebagelface.videoforge.dev \
+            --version-code 4
+
+      - name: Upload Android debug APK and private F-Droid staging bundle
         uses: actions/upload-artifact@v4
         with:
           name: video-forge-cathedral-android-debug
@@ -141,5 +176,7 @@ jobs:
             build/android/signature.txt
             build/android/zipalign.txt
             build/android/badging.txt
+            build/android/signing-mode.txt
+            build/fdroid-stage/**
           if-no-files-found: error
           retention-days: 14
