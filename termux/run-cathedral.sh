@@ -10,8 +10,12 @@ if [[ ! -x "$PY" ]]; then
   exit 1
 fi
 
+mkdir -p "$REPO/state"
 export OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
 export OPENAI_AGENT_MODEL="${OPENAI_AGENT_MODEL:-gpt-5.6-sol}"
+export GEMINI_MODEL="${GEMINI_MODEL:-gemini-3.7-flash}"
+export BOSS_STATE_DB="${BOSS_STATE_DB:-$REPO/state/boss.sqlite3}"
+export BOSS_AUTO_FANOUT="${BOSS_AUTO_FANOUT:-false}"
 
 if command -v ollama >/dev/null 2>&1 && ! curl -fsS "$OLLAMA_URL/api/tags" >/dev/null 2>&1; then
   echo 'Ollama is installed but not responding. Start it separately with: ollama serve' >&2

@@ -19,6 +19,10 @@ ALLOWED_EVENTS = {
     "cache_state_changed",
     "cutscene_started",
     "cutscene_completed",
+    "feed_polled",
+    "feed_item_new",
+    "boss_provider_assessed",
+    "boss_provider_failed",
 }
 
 BLOCKED_PROPERTY_FRAGMENTS = {
@@ -31,6 +35,10 @@ BLOCKED_PROPERTY_FRAGMENTS = {
     "media",
     "email",
     "name",
+    "title",
+    "url",
+    "link",
+    "summary",
 }
 
 

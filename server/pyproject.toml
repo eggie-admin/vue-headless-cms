@@ -1,7 +1,7 @@
 [project]
 name = "video-forge-control"
-version = "0.2.0"
-description = "Single Python control plane for Video Forge tablet, agents, compatibility routes and cloud sync"
+version = "0.3.0"
+description = "Single Python control plane for Video Forge tablet, boss agents, feeds, compatibility routes and cloud sync"
 requires-python = ">=3.13,<3.15"
 dependencies = [
   "fastapi[standard]>=0.116",

@@ -31,4 +31,8 @@ python -m venv "$REPO/server/.venv"
 )
 
 python "$REPO/scripts/architecture_sanity.py"
+python "$REPO/scripts/build_boss_manifest.py" --check
+python "$REPO/scripts/boss_ai_sanity.py"
+python -m unittest discover -s "$REPO/tests" -v
+mkdir -p "$REPO/state"
 echo 'Cathedral bootstrap green.'

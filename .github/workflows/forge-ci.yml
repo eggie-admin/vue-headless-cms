@@ -8,6 +8,7 @@ on:
       - 'godot/**'
       - 'modal/**'
       - 'schemas/**'
+      - 'manifests/**'
       - 'analytics/**'
       - 'termux/**'
       - 'scripts/**'
@@ -24,6 +25,7 @@ on:
       - 'godot/**'
       - 'modal/**'
       - 'schemas/**'
+      - 'manifests/**'
       - 'analytics/**'
       - 'termux/**'
       - 'scripts/**'
@@ -71,6 +73,10 @@ jobs:
       - run: python -m json.tool schemas/cutscene.schema.json >/dev/null
       - run: python -m json.tool schemas/agent-decision.schema.json >/dev/null
       - run: python -m json.tool schemas/telemetry-event.schema.json >/dev/null
+      - run: python -m json.tool schemas/feed-item.schema.json >/dev/null
+      - run: python -m json.tool schemas/feed-assessment.schema.json >/dev/null
+      - run: python -m json.tool schemas/boss-ai-manifest.schema.json >/dev/null
+      - run: python -m json.tool manifests/boss-ai.manifest.json >/dev/null
       - run: python -m json.tool analytics/event-catalog.json >/dev/null
       - run: |
           python - <<'PY'
@@ -80,3 +86,5 @@ jobs:
           print('pyproject.toml ok')
           PY
       - run: python scripts/architecture_sanity.py
+      - run: python scripts/build_boss_manifest.py --check
+      - run: python scripts/boss_ai_sanity.py
