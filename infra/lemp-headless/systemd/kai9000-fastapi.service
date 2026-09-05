@@ -1,0 +1,24 @@
+[Unit]
+Description=KAI 9000 FastAPI control plane
+After=network-online.target mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kai9000
+Group=kai9000
+WorkingDirectory=/srv/kai9000/app/server
+EnvironmentFile=/etc/kai9000/kai9000.env
+ExecStart=/srv/kai9000/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/kai9000
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
