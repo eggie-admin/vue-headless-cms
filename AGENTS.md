@@ -39,6 +39,7 @@ This repository contains a legacy Vue CMS plus a clean-room Video Forge implemen
 - Treat `templates/python3-apk/apt-build-dependencies.txt`, `requirements-build.txt`, `requirements-app.txt`, `.p4a`, and its README as one build contract.
 - Host packages, host Python build packages, and packaged Android runtime requirements are separate dependency planes. Do not collapse them into one requirements file.
 - Canonical Android lane: API 36, build-tools 36.0.0, NDK r28c (`28.2.13676358`), NDK API 29, Java 17, Python host 3.14, ABI `arm64-v8a`, WebView bootstrap.
+- Keep the host Python graph compatible with `python-for-android==2026.5.9`: `Cython==0.29.36` and `wheel~=0.43.0` are compatibility pins for this p4a release.
 - Derive `sdkmanager`, `adb`, `aapt`, and NDK paths from `${ANDROID_SDK_ROOT:-$ANDROID_HOME}`. Never depend on a workstation-specific SDK absolute path.
 - Do not disable PEP 517 isolation globally to hide package-specific build failures. Identify the failing package and prefer a p4a recipe or explicit host prerequisite.
 - Nightly builds are validation only. They may upload artifacts and evidence but must not merge branches or publish production releases.
@@ -69,7 +70,10 @@ For the Samsung APK candidate additionally verify:
 ```bash
 cd templates/python3-apk
 python -m pip check
-python -c 'import Cython, build, packaging, setuptools, wheel, virtualenv'
+python -c 'import Cython, appdirs, build, colorama, jinja2, packaging, setuptools, sh, toml, wheel'
+command -v meson
+command -v ninja
+command -v p4a
 python -m py_compile app/main.py sanity.py
 grep -q '^--arch arm64-v8a$' .p4a
 grep -q '^--android_api 36$' .p4a
