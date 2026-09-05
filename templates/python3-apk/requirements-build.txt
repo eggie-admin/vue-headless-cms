@@ -1,1 +1,9 @@
+# Host-side Python build toolchain for python-for-android.
+# Keep Android runtime dependencies in requirements-app.txt.
 python-for-android==2026.5.9
+Cython>=3.0,<4
+build>=1.2,<2
+packaging>=24,<27
+setuptools>=75
+wheel>=0.45
+virtualenv>=20
