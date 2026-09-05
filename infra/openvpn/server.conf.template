@@ -1,0 +1,33 @@
+# Video Forge Cathedral OpenVPN server hardening template
+# Server belongs on a trusted Ubuntu/gateway host, not the Android/Termux app origin.
+port 1194
+proto udp4
+dev tun
+topology subnet
+server 10.47.0.0 255.255.255.0
+
+ca /etc/openvpn/cathedral/ca.crt
+cert /etc/openvpn/cathedral/server.crt
+key /etc/openvpn/cathedral/server.key
+crl-verify /etc/openvpn/cathedral/crl.pem
+verify-client-cert require
+remote-cert-tls client
+
+tls-version-min 1.2
+tls-cert-profile preferred
+tls-crypt-v2 /etc/openvpn/cathedral/tls-crypt-v2-server.key force-cookie
+data-ciphers AES-256-GCM:AES-128-GCM:?CHACHA20-POLY1305
+allow-compression no
+
+keepalive 10 60
+reneg-sec 3600
+persist-key
+persist-tun
+explicit-exit-notify 1
+
+user nobody
+group nogroup
+
+# Deliberately absent: compression, BF-CBC, --cipher compatibility mode,
+# data-ciphers-fallback, shared static-key mode, and client-to-client routing.
+# Firewall this interface to private admin targets only.

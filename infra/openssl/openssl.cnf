@@ -1,0 +1,15 @@
+openssl_conf = cathedral_init
+
+[cathedral_init]
+ssl_conf = ssl_sect
+
+[ssl_sect]
+system_default = cathedral_tls
+
+[cathedral_tls]
+MinProtocol = TLSv1.2
+CipherString = DEFAULT@SECLEVEL=2
+Ciphersuites = TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256
+
+# Keep certificate verification enabled. The Cloudflare Tunnel route should use
+# an explicit CA pool when this origin certificate is signed by a private CA.
