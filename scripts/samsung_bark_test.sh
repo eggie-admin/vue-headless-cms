@@ -31,7 +31,11 @@ fi
 "$ADB" get-state >/dev/null
 bash "$ROOT/scripts/samsung_background_guard_adb.sh" >/dev/null
 "$ADB" forward "tcp:$HEALTH_PORT" tcp:8000 >/dev/null
-trap '"$ADB" forward --remove "tcp:'"$HEALTH_PORT"'" >/dev/null 2>&1 || true' EXIT
+
+cleanup() {
+  "$ADB" forward --remove "tcp:$HEALTH_PORT" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
 
 health_ok() {
   "$CURL" --fail --silent --show-error --max-time 2 "http://127.0.0.1:$HEALTH_PORT/api/health" >/dev/null 2>&1
@@ -51,6 +55,26 @@ wait_for_health() {
   return 1
 }
 
+app_foreground() {
+  "$ADB" shell dumpsys activity activities 2>/dev/null \
+    | grep -E 'mResumedActivity|topResumedActivity' \
+    | grep -F "$APP_PACKAGE" >/dev/null 2>&1
+}
+
+wait_for_app_foreground() {
+  local waited=0
+  while (( waited < RECOVERY_TIMEOUT )); do
+    if app_foreground; then
+      printf '%s' "$waited"
+      return 0
+    fi
+    sleep "$POLL_INTERVAL"
+    waited=$(( waited + POLL_INTERVAL ))
+  done
+  printf '%s' "$waited"
+  return 1
+}
+
 if ! health_ok; then
   echo "BARK preflight failed: FastAPI is not healthy before kill test" >&2
   exit 3
@@ -59,7 +83,8 @@ fi
 mkdir -p "$(dirname "$OUTPUT")"
 passed=0
 failed=0
-recovery_csv=""
+health_recovery_csv=""
+ui_recovery_csv=""
 
 for (( cycle=1; cycle<=CYCLES; cycle++ )); do
   echo "BARK cycle $cycle/$CYCLES"
@@ -71,18 +96,28 @@ for (( cycle=1; cycle<=CYCLES; cycle++ )); do
   "$ADB" shell am kill "$APP_PACKAGE" >/dev/null 2>&1 || true
   "$ADB" shell am kill "$TERMUX_PACKAGE" >/dev/null 2>&1 || true
 
-  if recovery_seconds="$(wait_for_health)"; then
+  health_recovery="$(wait_for_health)" || health_ok_after=false
+  health_ok_after="${health_ok_after:-true}"
+
+  "$ADB" shell monkey -p "$APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
+  ui_recovery="$(wait_for_app_foreground)" || ui_ok_after=false
+  ui_ok_after="${ui_ok_after:-true}"
+
+  if [[ "$health_ok_after" == "true" && "$ui_ok_after" == "true" ]]; then
     passed=$(( passed + 1 ))
-    "$ADB" shell monkey -p "$APP_PACKAGE" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
   else
     failed=$(( failed + 1 ))
   fi
 
-  if [[ -n "$recovery_csv" ]]; then recovery_csv+=","; fi
-  recovery_csv+="$recovery_seconds"
+  if [[ -n "$health_recovery_csv" ]]; then health_recovery_csv+=","; fi
+  health_recovery_csv+="$health_recovery"
+  if [[ -n "$ui_recovery_csv" ]]; then ui_recovery_csv+=","; fi
+  ui_recovery_csv+="$ui_recovery"
+
+  unset health_ok_after ui_ok_after
 done
 
-python3 - "$OUTPUT" "$CYCLES" "$passed" "$failed" "$recovery_csv" <<'PY'
+python3 - "$OUTPUT" "$CYCLES" "$passed" "$failed" "$health_recovery_csv" "$ui_recovery_csv" <<'PY'
 import json
 import pathlib
 import sys
@@ -92,7 +127,8 @@ path = pathlib.Path(sys.argv[1]).expanduser()
 cycles = int(sys.argv[2])
 passed = int(sys.argv[3])
 failed = int(sys.argv[4])
-recoveries = [int(x) for x in sys.argv[5].split(",") if x]
+health_recoveries = [int(x) for x in sys.argv[5].split(",") if x]
+ui_recoveries = [int(x) for x in sys.argv[6].split(",") if x]
 payload = {
     "schema": "video-forge.samsung-bark.v1",
     "name": "Background App Resilience Kill",
@@ -102,7 +138,8 @@ payload = {
     "cycles": cycles,
     "passed": passed,
     "failed": failed,
-    "recovery_seconds": recoveries,
+    "fastapi_recovery_seconds": health_recoveries,
+    "ui_foreground_recovery_seconds": ui_recoveries,
     "ok": failed == 0,
 }
 path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -110,7 +147,7 @@ print(json.dumps(payload, indent=2, sort_keys=True))
 PY
 
 if (( failed > 0 )); then
-  echo "BARK_RED: $failed cycle(s) failed to recover FastAPI" >&2
+  echo "BARK_RED: $failed cycle(s) failed backend or kiosk-shell recovery" >&2
   exit 4
 fi
 
