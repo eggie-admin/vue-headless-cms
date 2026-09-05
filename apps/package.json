@@ -21,7 +21,13 @@
     "backend:install-smoke": "npm run backend:install && npm run backend:smoke",
     "samsung:smoke": "python3 ../scripts/samsung_benchmark.py --smoke",
     "samsung:bench": "python3 ../scripts/samsung_benchmark.py --full",
-    "samsung:guard:adb": "bash ../scripts/samsung_background_guard_adb.sh"
+    "samsung:guard:adb": "bash ../scripts/samsung_background_guard_adb.sh",
+    "samsung:bark": "bash ../scripts/samsung_bark_test.sh",
+    "samsung:kiosk:status": "bash ../scripts/samsung_kiosk_adb.sh status",
+    "samsung:kiosk:guard": "bash ../scripts/samsung_kiosk_adb.sh guard",
+    "samsung:kiosk:launch": "bash ../scripts/samsung_kiosk_adb.sh launch",
+    "samsung:qualify": "npm run samsung:smoke && npm run samsung:bench",
+    "samsung:qualify:bark": "npm run samsung:guard:adb && npm run samsung:bark"
   },
   "devDependencies": {
     "prettier": "3.6.2"
