@@ -6,9 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import py_compile
 import shutil
-import sys
 from pathlib import Path
 
 
@@ -74,7 +72,13 @@ def validate(manifest: dict[str, object]) -> list[str]:
         errors.append("manifest files list is required")
     else:
         for item in files:
-            if not isinstance(item, str) or not item or item.startswith(("/", "\\")) or ".." in Path(item).parts:
+            if (
+                not isinstance(item, str)
+                or not item
+                or item.startswith(("/", "\\"))
+                or "\\" in item
+                or ".." in Path(item).parts
+            ):
                 errors.append(f"unsafe widget file entry: {item!r}")
                 continue
             path = WIDGET_ROOT / item
@@ -84,9 +88,9 @@ def validate(manifest: dict[str, object]) -> list[str]:
     source_file = WIDGET_ROOT / "hydra_widget_setup.py"
     if source_file.is_file():
         try:
-            py_compile.compile(str(source_file), doraise=True)
-        except py_compile.PyCompileError as exc:
-            errors.append(f"hydra_widget_setup.py does not compile: {exc.msg}")
+            compile(source_file.read_text(encoding="utf-8"), str(source_file), "exec")
+        except SyntaxError as exc:
+            errors.append(f"hydra_widget_setup.py does not compile: {exc}")
 
     return errors
 
