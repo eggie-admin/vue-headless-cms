@@ -1,0 +1,82 @@
+schema: video-forge.samsung-device-qualification.v1
+profile_version: 1.0.0
+name: Samsung SM-X400 Device Qualification
+
+policy:
+  local_only: true
+  public_network_targets: false
+  execute_model_output: false
+  fail_closed: true
+
+packages:
+  termux: com.termux
+  video_forge: art.eggiebagelface.videoforge.dev
+
+services:
+  fastapi:
+    url: http://127.0.0.1:8000/api/health
+    adb_forward_port: 18000
+    timeout_s: 2
+  ollama:
+    url: http://127.0.0.1:11434/api/tags
+    adb_forward_port: 18114
+    timeout_s: 2
+
+smoke:
+  required:
+    - device_identity
+    - fastapi_health
+    - webview_provider
+    - vulkan_capability
+    - background_guard_state
+  optional:
+    - ollama_health
+    - ffmpeg
+    - godot
+
+benchmark:
+  config: infra/samsung/samsung-benchmark.yml
+  profile: full
+  local_only: true
+
+bark:
+  name: Background App Resilience Kill
+  cycles: 3
+  recovery_timeout_s: 30
+  poll_interval_s: 2
+  kill_mode: am_kill
+  force_stop_forbidden: true
+  press_home_before_kill: true
+  targets:
+    - com.termux
+    - art.eggiebagelface.videoforge.dev
+  success:
+    fastapi_must_recover: true
+    kiosk_shell_must_relaunch: true
+
+background_guard:
+  android_appops:
+    RUN_IN_BACKGROUND: allow
+    RUN_ANY_IN_BACKGROUND: allow
+  standby_bucket: active
+  samsung_never_sleeping_apps:
+    required:
+      - com.termux
+      - art.eggiebagelface.videoforge.dev
+    automation: user_or_managed_device_only
+  termux_wake_lock: true
+  runit_supervision: true
+
+kiosk:
+  preferred_mode: android_enterprise_lock_task
+  fully_managed_required: true
+  dpc_allowlist_required: true
+  package: art.eggiebagelface.videoforge.dev
+  unmanaged_fallback: immersive_shell_only
+  never_auto_enable_screen_pinning: true
+  allow_exit_from_managed_kiosk: operator_controlled
+
+outputs:
+  smoke: ~/kai9000/state/samsung-smoke.json
+  benchmark: ~/kai9000/state/samsung-benchmark.json
+  bark: ~/kai9000/state/samsung-bark.json

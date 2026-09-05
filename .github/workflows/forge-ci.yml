@@ -107,4 +107,10 @@ jobs:
       - run: python scripts/cathedral_full_sanity.py
       - run: python scripts/edge_security_sanity.py
       - run: python scripts/cloud_provider_sanity.py
+      - name: Validate Samsung shell contracts
+        run: bash -n scripts/samsung_background_guard_adb.sh scripts/samsung_bark_test.sh scripts/samsung_kiosk_adb.sh
+      - name: Validate Samsung benchmark YAML
+        run: |
+          python -m pip install 'PyYAML>=6.0.2,<7'
+          python scripts/samsung_benchmark.py --validate-config
       - run: python scripts/samsung_edge_sanity.py

@@ -1,0 +1,123 @@
+schema: video-forge.samsung-benchmark.config.v1
+profile_version: 1.0.0
+name: Samsung SM-X400 Full System Benchmark
+
+policy:
+  config_is_authoritative: true
+  local_only: true
+  public_network_targets: false
+  execute_model_output: false
+  fail_closed_on_invalid_config: true
+
+output:
+  schema: video-forge.samsung-benchmark.v2
+  smoke_path: ~/kai9000/state/samsung-smoke.json
+  full_path: ~/kai9000/state/samsung-benchmark.json
+
+android:
+  expected_manufacturer: samsung
+  preferred_models:
+    - SM-X400
+    - SM-G770F
+  properties:
+    manufacturer: ro.product.manufacturer
+    model: ro.product.model
+    android_release: ro.build.version.release
+    sdk: ro.build.version.sdk
+    abi: ro.product.cpu.abi
+    hardware: ro.hardware
+    board: ro.product.board
+    vulkan_version: ro.hardware.vulkan.version
+    vulkan_level: ro.hardware.vulkan.level
+
+commands:
+  getprop_timeout_s: 2
+  webview_timeout_s: 4
+  vulkan_timeout_s: 8
+  runtime_timeout_s: 3
+  process_timeout_s: 2
+  thermal_timeout_s: 4
+
+services:
+  fastapi:
+    url: http://127.0.0.1:8000/api/health
+    timeout_s: 2
+    expected_status: 200
+    required_in_smoke: true
+    required_in_full: true
+  ollama:
+    url: http://127.0.0.1:11434/api/tags
+    timeout_s: 2
+    expected_status: 200
+    required_in_smoke: false
+    required_in_full: false
+
+process_watch:
+  x11:
+    pattern: termux-x11
+  vnc:
+    pattern: x11vnc|Xtigervnc
+
+runtime_commands:
+  node: [node, --version]
+  npm: [npm, --version]
+  ffmpeg: [ffmpeg, -version]
+  godot: [godot, --version]
+
+system_snapshot:
+  battery:
+    command: [/system/bin/dumpsys, battery]
+  memory:
+    path: /proc/meminfo
+  storage:
+    command: [df, -k, .]
+  kernel:
+    command: [uname, -a]
+  uptime:
+    path: /proc/uptime
+  loadavg:
+    path: /proc/loadavg
+  thermal:
+    glob: /sys/class/thermal/thermal_zone*/temp
+    max_zones: 32
+
+vulkan:
+  command: [vulkaninfo, --summary]
+  required: false
+
+profiles:
+  smoke:
+    include: [device, system_snapshot, webview, vulkan, runtime, services, processes]
+    benchmarks: []
+  full:
+    include: [device, system_snapshot, webview, vulkan, runtime, services, processes, benchmarks]
+    benchmarks: [cpu_sha256, disk_write, ffmpeg_h264]
+
+benchmarks:
+  cpu_sha256:
+    total_mib: 32
+    block_seed: video-forge-cathedral
+    block_repeat: 4096
+  disk_write:
+    total_mib: 32
+    block_mib: 1
+    fsync: true
+  ffmpeg_h264:
+    timeout_s: 45
+    source: testsrc2=size=540x960:rate=30
+    duration_s: 2
+    codec: libx264
+    preset: veryfast
+    crf: 23
+    pixel_format: yuv420p
+    extension: mp4
+
+thresholds:
+  smoke:
+    fastapi_required: true
+  full:
+    fastapi_required: true
+    cpu_sha256_mb_s_min: 1.0
+    disk_write_mb_s_min: 1.0
+    ffmpeg_required: true
+    ffmpeg_max_elapsed_ms: 45000

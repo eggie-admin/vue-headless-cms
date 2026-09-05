@@ -27,6 +27,21 @@ func close_cms() -> void:
 func send_to_cms(message: Dictionary) -> void:
     if _plugin: _plugin.postToCms(JSON.stringify(message))
 
+func managed_kiosk_permitted() -> bool:
+    if not _plugin:
+        return false
+    return bool(_plugin.isManagedKioskPermitted())
+
+func start_managed_kiosk() -> bool:
+    if not _plugin or not managed_kiosk_permitted():
+        return false
+    return bool(_plugin.requestManagedKioskStart())
+
+func stop_managed_kiosk() -> bool:
+    if not _plugin:
+        return false
+    return bool(_plugin.requestManagedKioskStop())
+
 func _on_cms_message(raw: String) -> void:
     if raw.length() > 32768:
         push_warning("Rejected oversized CMS bridge message")
@@ -58,5 +73,22 @@ func _on_cms_message(raw: String) -> void:
             var state := String(payload.get("state", "idle"))
             if state in allowed_states and host and host.has_method("set_avatar_state"):
                 host.set_avatar_state(StringName(state))
+        "android.kiosk.status":
+            send_to_cms({
+                "type": "android.kiosk.status",
+                "payload": {"managed_permitted": managed_kiosk_permitted()}
+            })
+        "android.kiosk.start":
+            var started := start_managed_kiosk()
+            send_to_cms({
+                "type": "android.kiosk.result",
+                "payload": {"action": "start", "ok": started, "managed_permitted": managed_kiosk_permitted()}
+            })
+        "android.kiosk.stop":
+            var stopped := stop_managed_kiosk()
+            send_to_cms({
+                "type": "android.kiosk.result",
+                "payload": {"action": "stop", "ok": stopped}
+            })
         _:
             pass
