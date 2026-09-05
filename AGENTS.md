@@ -44,6 +44,19 @@ This repository contains a legacy Vue CMS plus a clean-room Video Forge implemen
 - Do not disable PEP 517 isolation globally to hide package-specific build failures. Identify the failing package and prefer a p4a recipe or explicit host prerequisite.
 - Nightly builds are validation only. They may upload artifacts and evidence but must not merge branches or publish production releases.
 
+## Samsung SM-X400 frontend widget doctrine
+
+- The canonical widget lane is `samsung-sm-x400/frontend/widget/` on the build candidate.
+- The widget is optional and is not embedded into the APK.
+- `samsung-sm-x400/frontend/widget/widget.manifest.json` is the dependency contract for this lane.
+- Keep candidate host tools, npm dependencies, Android apps, and Termux runtime commands as separate dependency groups.
+- Do not add Termux:Widget, Termux:API, TigerVNC, AXS, websockify, hydra-cockpit, or Ollama to `templates/python3-apk/apt-build-dependencies.txt`, `requirements-build.txt`, `requirements-app.txt`, or `.p4a` unless an explicit architecture change makes one part of the APK itself.
+- The widget build is standard-library Python and must not add npm packages merely to stage files.
+- `npm run wizard` is the operator surface; `scripts/sm_x400_build_wizard.py` is the deterministic orchestration layer.
+- `npm run candidate:build` must stay widget-free. Widget inclusion requires `npm run candidate:build:widget` or the equivalent explicit `--with-widget` option.
+- Runtime dependency absence must be reported, not silently converted into a candidate build failure.
+- Preserve loopback-only service binding and owned-PID shutdown behavior in `hydra_widget_setup.py`.
+
 ## Legacy boundary
 
 Do not modify the inherited root `src/`, root `package.json`, or root `package-lock.json` unless the user explicitly requests a legacy migration and licensing/provenance has been resolved.
@@ -57,11 +70,14 @@ cd apps
 npm install --package-lock-only --ignore-scripts --no-audit --no-fund
 npm ci --ignore-scripts --no-audit --no-fund
 npm run build --workspace=video-forge-ui
+npm run widget:check
+npm run wizard -- --candidate --with-widget --dry-run
 cd ..
-python3 -m compileall -q server/app scripts tests
+python3 -m compileall -q server/app scripts tests samsung-sm-x400/frontend/widget
 python3 scripts/architecture_sanity.py
 python3 scripts/build_boss_manifest.py --check
 python3 scripts/boss_ai_sanity.py
+python3 scripts/sm_x400_widget_build.py --check
 python3 -m unittest discover -s tests -v
 ```
 
@@ -81,4 +97,4 @@ grep -q '^--ndk_api 29$' .p4a
 grep -q '^--bootstrap webview$' .p4a
 ```
 
-Do not claim cloud, Ollama, Gemini, Mixpanel, Android, Godot, GPU runtime, or APK success without direct evidence from those runtimes or CI artifacts.
+Do not claim cloud, Ollama, Gemini, Mixpanel, Android, Godot, GPU runtime, widget runtime, or APK success without direct evidence from those runtimes or CI artifacts.
