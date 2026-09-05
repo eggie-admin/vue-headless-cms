@@ -2,15 +2,15 @@
 * { box-sizing: border-box; }
 html, body, #app { margin: 0; width: 100%; height: 100%; overflow: hidden; }
 button, input, select, textarea { font: inherit; }
-button { color: #f5f7ff; background: #24294b; border: 1px solid #555e9e; border-radius: 8px; padding: .55rem .75rem; }
+button { min-height: 44px; color: #f5f7ff; background: #24294b; border: 1px solid #555e9e; border-radius: 8px; padding: .55rem .75rem; }
 button:disabled { opacity: .45; }
 .cms-shell { width: 100vw; height: 100vh; display: grid; grid-template-rows: auto 1fr; background: radial-gradient(circle at 55% 15%, #1d1b48 0, #090b13 46%, #04050a 100%); }
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; border-bottom: 1px solid #30365e; background: #0d101be8; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem; padding-top: max(.75rem, env(safe-area-inset-top)); border-bottom: 1px solid #30365e; background: #0d101be8; }
 .topbar > div { display: flex; align-items: center; gap: .75rem; }
 .status { padding: .2rem .5rem; border-radius: 999px; font-size: .72rem; text-transform: uppercase; background: #3a2830; }
 .status[data-state='online'] { background: #173d2b; }
 .token-row input { width: min(28vw, 280px); }
-input, select { color: #eef2ff; background: #111522; border: 1px solid #394164; border-radius: 7px; padding: .55rem .65rem; }
+input, select { min-height: 44px; color: #eef2ff; background: #111522; border: 1px solid #394164; border-radius: 7px; padding: .55rem .65rem; }
 .cms-grid { min-height: 0; display: grid; grid-template-columns: minmax(230px, 28vw) 1fr; }
 .sidebar { min-height: 0; overflow-y: auto; padding: .8rem; border-right: 1px solid #2c3153; background: #0a0c14d9; }
 .sidebar-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; font-weight: 700; }
@@ -18,7 +18,7 @@ input, select { color: #eef2ff; background: #111522; border: 1px solid #394164; 
 .doc-card.active { outline: 2px solid #8b84ff; background: #181b31; }
 .doc-card span, .doc-card small { opacity: .68; }
 .create-card { display: grid; gap: .5rem; margin-top: 1rem; padding: .75rem; border: 1px solid #313757; border-radius: 10px; }
-.editor-panel { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto 1fr auto; padding: .9rem; gap: .7rem; }
+.editor-panel { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto 1fr auto; padding: .9rem; padding-bottom: max(.9rem, env(safe-area-inset-bottom)); gap: .7rem; }
 .editor-head { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
 .editor-head > div:first-child { display: grid; gap: .3rem; flex: 1; }
 .title-input { width: min(620px, 100%); font-size: 1.15rem; font-weight: 700; }
@@ -26,4 +26,16 @@ input, select { color: #eef2ff; background: #111522; border: 1px solid #394164; 
 .danger { background: #45202b; border-color: #83475b; }
 textarea { width: 100%; min-height: 0; resize: none; color: #dfe7ff; background: #080b12; border: 1px solid #343b62; border-radius: 10px; padding: 1rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; line-height: 1.45; tab-size: 2; }
 footer { opacity: .72; font-size: .8rem; min-height: 1rem; }
-@media (max-width: 760px) { .topbar { align-items: flex-start; flex-direction: column; } .token-row { width: 100%; } .token-row input { flex: 1; width: auto; } .cms-grid { grid-template-columns: 38vw 1fr; } .editor-head { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 760px) {
+  .topbar { align-items: stretch; flex-direction: column; gap: .6rem; }
+  .topbar > div { flex-wrap: wrap; }
+  .token-row { width: 100%; }
+  .token-row input { flex: 1 1 12rem; width: auto; min-width: 0; }
+  .cms-grid { grid-template-columns: 1fr; grid-template-rows: minmax(150px, 34vh) 1fr; }
+  .sidebar { border-right: 0; border-bottom: 1px solid #2c3153; padding: .65rem; }
+  .editor-panel { padding: .65rem; }
+  .editor-head { align-items: stretch; flex-direction: column; gap: .55rem; }
+  .editor-actions { width: 100%; }
+  .editor-actions button { flex: 1; }
+  textarea { padding: .75rem; font-size: .92rem; }
+}
