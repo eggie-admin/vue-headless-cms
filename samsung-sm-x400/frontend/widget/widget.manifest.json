@@ -27,7 +27,11 @@
       "python3"
     ],
     "optionalAndroidApps": [
-      "Termux:API"
+      "Termux:API",
+      "Shizuku"
+    ],
+    "optionalCapabilities": [
+      "shizuku-privilege-broker"
     ],
     "optionalCommands": [
       "termux-wake-lock",
@@ -52,6 +56,8 @@
     "README.md",
     "widget.manifest.json",
     "hydra_widget_setup.py",
-    "autopilot/SKILL.md"
+    "autopilot/SKILL.md",
+    "shizuku/README.md",
+    "shizuku/shizuku.manifest.json"
   ]
 }
