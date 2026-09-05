@@ -1,10 +1,12 @@
 package art.eggiebagelface.cathedral
 
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
@@ -28,13 +30,18 @@ import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
 import org.godotengine.godot.plugin.UsedByGodot
 import org.json.JSONObject
+import java.io.File
+import java.util.UUID
 
 class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
     companion object {
         private const val APP_ORIGIN = "https://appassets.androidplatform.net"
         private const val CMS_URL = "$APP_ORIGIN/assets/cms/index.html"
         private const val BRIDGE_NAME = "CathedralBridge"
+        private const val GALLERY_REQUEST_CODE = 9401
+        private const val MAX_GALLERY_BYTES = 50L * 1024L * 1024L
         private val CMS_MESSAGE_SIGNAL = SignalInfo("cms_message", String::class.java)
+        private val GALLERY_IMAGE_SIGNAL = SignalInfo("gallery_image_selected", String::class.java)
     }
 
     private var cmsView: WebView? = null
@@ -42,7 +49,7 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
 
     override fun getPluginName() = BuildConfig.GODOT_PLUGIN_NAME
 
-    override fun getPluginSignals() = setOf(CMS_MESSAGE_SIGNAL)
+    override fun getPluginSignals() = setOf(CMS_MESSAGE_SIGNAL, GALLERY_IMAGE_SIGNAL)
 
     @UsedByGodot
     fun openCms() {
@@ -70,6 +77,53 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
         runOnHostThread {
             cmsView?.postWebMessage(WebMessage(message), Uri.parse(APP_ORIGIN))
         }
+    }
+
+    @UsedByGodot
+    fun pickGalleryImage() {
+        runOnHostThread {
+            val hostActivity = activity ?: return@runOnHostThread
+            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Intent(MediaStore.ACTION_PICK_IMAGES).apply { type = "image/*" }
+            } else {
+                Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "image/*"
+                }
+            }
+            runCatching {
+                hostActivity.startActivityForResult(intent, GALLERY_REQUEST_CODE)
+            }.onFailure { error ->
+                emitGalleryResult(JSONObject()
+                    .put("ok", false)
+                    .put("error", "picker_launch_failed")
+                    .put("detail", error.javaClass.simpleName))
+            }
+        }
+    }
+
+    override fun onMainActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode != GALLERY_REQUEST_CODE) {
+            super.onMainActivityResult(requestCode, resultCode, data)
+            return
+        }
+        if (resultCode != Activity.RESULT_OK) {
+            emitGalleryResult(JSONObject().put("ok", false).put("error", "picker_cancelled"))
+            return
+        }
+        val uri = data?.data
+        if (uri == null) {
+            emitGalleryResult(JSONObject().put("ok", false).put("error", "picker_missing_uri"))
+            return
+        }
+        val payload = runCatching { cacheGallerySelection(uri) }
+            .getOrElse { error ->
+                JSONObject()
+                    .put("ok", false)
+                    .put("error", "picker_copy_failed")
+                    .put("detail", error.javaClass.simpleName)
+            }
+        emitGalleryResult(payload)
     }
 
     @UsedByGodot
@@ -124,7 +178,56 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
             .put("vulkan_feature", packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL))
             .put("developer_options_control", "open_only")
             .put("kiosk_control", "immersive_app_shell")
+            .put("gallery_control", "system_photo_picker")
         return payload.toString()
+    }
+
+    private fun cacheGallerySelection(uri: Uri): JSONObject {
+        require(uri.scheme == "content") { "Only content:// gallery URIs are accepted" }
+        val hostActivity = activity ?: error("Godot Activity unavailable")
+        val resolver = hostActivity.contentResolver
+        val mime = resolver.getType(uri) ?: "application/octet-stream"
+        require(mime.startsWith("image/")) { "Selected item is not an image" }
+
+        val extension = when (mime) {
+            "image/jpeg" -> "jpg"
+            "image/png" -> "png"
+            "image/webp" -> "webp"
+            "image/gif" -> "gif"
+            "image/heic", "image/heif" -> "heic"
+            else -> "img"
+        }
+        val cacheDir = File(hostActivity.cacheDir, "edge-gallery").apply { mkdirs() }
+        val target = File(cacheDir, "${UUID.randomUUID()}.$extension")
+
+        var total = 0L
+        try {
+            resolver.openInputStream(uri)?.use { input ->
+                target.outputStream().use { output ->
+                    val buffer = ByteArray(64 * 1024)
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        total += read
+                        require(total <= MAX_GALLERY_BYTES) { "Selected image exceeds 50 MiB limit" }
+                        output.write(buffer, 0, read)
+                    }
+                }
+            } ?: error("Unable to open selected image")
+        } catch (error: Throwable) {
+            target.delete()
+            throw error
+        }
+
+        return JSONObject()
+            .put("ok", true)
+            .put("mime", mime)
+            .put("bytes", total)
+            .put("cache_path", target.absolutePath)
+    }
+
+    private fun emitGalleryResult(payload: JSONObject) {
+        emitSignal(GALLERY_IMAGE_SIGNAL.name, payload.toString())
     }
 
     private fun ensureCmsView(): WebView {
@@ -142,8 +245,9 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
             domStorageEnabled = true
             allowFileAccess = false
             allowContentAccess = false
+            javaScriptCanOpenWindowsAutomatically = false
             setSupportMultipleWindows(false)
-            mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
         }
         CookieManager.getInstance().setAcceptThirdPartyCookies(view, false)
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
@@ -158,8 +262,13 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
                 if (uri.scheme == "https" && uri.host == "appassets.androidplatform.net") {
                     return false
                 }
-                runCatching {
-                    hostActivity.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                if (uri.scheme == "https" || uri.scheme == "http") {
+                    runCatching { hostActivity.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                } else {
+                    emitSignal(CMS_MESSAGE_SIGNAL.name, JSONObject()
+                        .put("type", "cms.navigation.blocked")
+                        .put("scheme", uri.scheme ?: "unknown")
+                        .toString())
                 }
                 return true
             }
@@ -183,13 +292,24 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
                     return@addWebMessageListener
                 }
                 val data = message.data ?: return@addWebMessageListener
+                if (data.length > 32768) {
+                    replyProxy.postMessage("{\"ok\":false,\"error\":\"message_too_large\"}")
+                    return@addWebMessageListener
+                }
                 emitSignal(CMS_MESSAGE_SIGNAL.name, data)
                 replyProxy.postMessage("{\"ok\":true}")
             }
         }
 
+        val metrics = hostActivity.resources.displayMetrics
+        val widthDp = metrics.widthPixels / metrics.density
+        val panelWidth = if (widthDp <= 720f) {
+            ViewGroup.LayoutParams.MATCH_PARENT
+        } else {
+            (metrics.widthPixels * 0.68f).toInt()
+        }
         val params = FrameLayout.LayoutParams(
-            (hostActivity.resources.displayMetrics.widthPixels * 0.68f).toInt(),
+            panelWidth,
             ViewGroup.LayoutParams.MATCH_PARENT
         ).apply {
             gravity = Gravity.END

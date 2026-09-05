@@ -1,0 +1,53 @@
+{
+  "schema": "kai9000.samsung.edge-profile.v1",
+  "device": {
+    "product": "Galaxy S24 FE",
+    "model": "SM-S721U1",
+    "form_factor": "phone",
+    "orientation": "portrait-first",
+    "abi": "arm64-v8a",
+    "target_sdk": 36,
+    "ram_gb": 8,
+    "soc": "Exynos 2400e"
+  },
+  "security": {
+    "root_required": false,
+    "root_allowed": false,
+    "preserve_knox_warranty_bit": true,
+    "secure_folder_supported": true,
+    "secure_folder_isolation": "preferred",
+    "reason": "Root/OEM-untrusted state can trip Knox and disable Secure Folder."
+  },
+  "ui": {
+    "shell": "godot4+android-webview+vue3",
+    "webview_origin": "https://appassets.androidplatform.net",
+    "mixed_content": "never_allow",
+    "phone_panel": "full_width",
+    "external_navigation": "system_browser_only"
+  },
+  "gallery": {
+    "strategy": "android_system_photo_picker",
+    "broad_storage_permission": false,
+    "copy_selection_to_app_cache": true,
+    "agent_access": "selected_item_only"
+  },
+  "agents": {
+    "topology": "antenna",
+    "max_foreground_agents": 1,
+    "local_first": true,
+    "local_model": "qwen2.5:0.5b",
+    "optional_local_director_model": "qwen2.5:3b",
+    "openai": "optional_cloud_reasoner",
+    "github_copilot": "developer_build_assistant_only",
+    "arbitrary_shell": false,
+    "high_impact_actions_require_approval": true
+  },
+  "runtime": {
+    "termux_ollama": "optional_local_daemon",
+    "ollama_url": "http://127.0.0.1:11434",
+    "kai_api_url": "http://127.0.0.1:8000",
+    "fallback": "cloud_antenna_when_explicitly_configured",
+    "one_model_hot_at_a_time": true,
+    "background_heavy_inference": false
+  }
+}
