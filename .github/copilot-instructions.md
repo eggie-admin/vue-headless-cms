@@ -5,7 +5,7 @@ Build the Cathedral, not a framework zoo.
 - Preserve the clean-room implementation under `apps/forge-ui`, `server`, `godot`, `schemas`, `manifests`, `termux`, and `scripts`.
 - Do not mutate the inherited legacy CMS unless explicitly asked.
 - Node 24 LTS + npm are the only JavaScript runtime/package-manager lane. Use npm workspaces under `apps/`; do not introduce pnpm, yarn, Bun, or a Node production server.
-- FastAPI is the single Python control plane. Flask may exist only as a mounted compatibility application under `/compat`.
+- FastAPI is the single Python control plane. Flask may exist only as a mounted compatibility application under `/compat`, except for the deliberately tiny python-for-android WebView template under `templates/python3-apk`.
 - Models return typed decisions or assessments. Python policy sets risk and confirmation requirements. Never execute natural-language shell commands.
 - The canonical Boss AI configuration is `manifests/boss-ai.manifest.json`; its `.b64` file must decode byte-for-byte to the canonical JSON.
 - Never commit API keys or tokens into manifests. Reference environment-variable names only.
@@ -16,3 +16,15 @@ Build the Cathedral, not a framework zoo.
 - Vue owns state; jQuery UI only manipulates outer window geometry.
 - Bind tablet development services to loopback by default.
 - Prefer reversible changes, schemas, tests, and explicit evidence. CI evidence outranks agent confidence.
+
+## Samsung SM-X400 APK candidate lane
+
+- Stage Android packaging changes on `samsung-sm-x400-build-candidate`. Do not merge PR #3 or mark it green until APK CI passes.
+- `templates/python3-apk/apt-build-dependencies.txt` is the canonical Ubuntu host package list.
+- `templates/python3-apk/requirements-build.txt` is the canonical host Python build-tool list. It must explicitly retain Cython, build/wheel tooling, packaging, setuptools and virtualenv alongside the pinned `python-for-android` version.
+- `templates/python3-apk/requirements-app.txt` lists app/runtime Python packages and must remain aligned with `.p4a`. Host build dependencies do not belong in `.p4a`.
+- Preserve Android API 36, NDK r28c (`28.2.13676358`), NDK API 29, `arm64-v8a`, WebView bootstrap, package id `art.eggiebagelface.samsungx400.python`, and loopback port 8765 unless an explicit architecture change is requested.
+- Derive tools from one SDK root: `cmdline-tools/latest/bin/sdkmanager`, `platform-tools/adb`, and `build-tools/36.0.0/aapt`. Do not hard-code runner-specific absolute SDK paths.
+- Before cross-compilation, run `python -m pip check`, import the declared host build modules, run static `.p4a` sanity, and confirm the SDK/NDK directories exist.
+- A candidate is GREEN only after cross-compilation, package/ABI verification, APK sanity, SHA-256 generation and artifact upload all pass.
+- The nightly workflow may build the candidate ref but must never auto-merge it. Scheduled GitHub Actions become autonomous only when the workflow definition exists on the repository default branch.
