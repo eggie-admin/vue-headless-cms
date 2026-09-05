@@ -46,7 +46,7 @@ jobs:
       GODOT_TEMPLATE_VERSION: 4.7.2.stable
       GODOT_EDITOR_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
       GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
-      APK_PATH: build/android/video-forge-cathedral-debug.apk
+      APK_PATH: build/android/kai9000-fdroid-cathedral-debug.apk
 
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -87,20 +87,13 @@ jobs:
           GODOT_DIR="$RUNNER_TEMP/godot-4.7.2"
           mkdir -p "$GODOT_DIR"
           cd "$GODOT_DIR"
-
-          curl --fail --location --retry 3 \
-            -o godot.zip \
-            "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v4.7.2-stable_linux.x86_64.zip"
+          curl --fail --location --retry 3 -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v4.7.2-stable_linux.x86_64.zip"
           echo "${GODOT_EDITOR_SHA256}  godot.zip" | sha256sum --check --strict
           unzip -q godot.zip
           chmod +x Godot_v4.7.2-stable_linux.x86_64
           echo "GODOT_BIN=$GODOT_DIR/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"
-
-          curl --fail --location --retry 3 \
-            -o export_templates.tpz \
-            "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v4.7.2-stable_export_templates.tpz"
+          curl --fail --location --retry 3 -o export_templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v4.7.2-stable_export_templates.tpz"
           echo "${GODOT_TEMPLATES_SHA256}  export_templates.tpz" | sha256sum --check --strict
-
           rm -rf templates-unpack
           mkdir templates-unpack
           unzip -q export_templates.tpz -d templates-unpack
@@ -110,7 +103,7 @@ jobs:
           test -f "$TEMPLATE_DIR/android_debug.apk"
           test -f "$TEMPLATE_DIR/android_source.zip"
 
-      - name: Build packaged Vue CMS
+      - name: Build packaged Vue cockpit
         shell: bash
         run: |
           set -euo pipefail
@@ -131,14 +124,11 @@ jobs:
           gradle -p godot/android-plugin :plugin:assemble
           test -f godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-debug.aar
           test -f godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-release.aar
-
           rm -rf godot/addons/CathedralAndroid
           mkdir -p godot/addons/CathedralAndroid/bin/debug godot/addons/CathedralAndroid/bin/release
           cp -a godot/android-plugin/plugin/export_scripts_template/. godot/addons/CathedralAndroid/
-          cp godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-debug.aar \
-            godot/addons/CathedralAndroid/bin/debug/CathedralAndroid-debug.aar
-          cp godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-release.aar \
-            godot/addons/CathedralAndroid/bin/release/CathedralAndroid-release.aar
+          cp godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-debug.aar godot/addons/CathedralAndroid/bin/debug/CathedralAndroid-debug.aar
+          cp godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-release.aar godot/addons/CathedralAndroid/bin/release/CathedralAndroid-release.aar
 
       - name: Run full Cathedral architecture gate
         run: |
@@ -157,17 +147,8 @@ jobs:
           export/android/android_sdk_path = "$ANDROID_HOME"
           export/android/java_sdk_path = "$JAVA_HOME"
           EOF
-
-          KEYSTORE_PATH="$RUNNER_TEMP/video-forge-debug.keystore"
-          keytool -genkeypair \
-            -keystore "$KEYSTORE_PATH" \
-            -storepass android \
-            -alias androiddebugkey \
-            -keypass android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname 'CN=Video Forge Debug,O=EggieBagelFace,C=US'
+          KEYSTORE_PATH="$RUNNER_TEMP/kai9000-debug.keystore"
+          keytool -genkeypair -keystore "$KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname 'CN=KAI9000 Debug,O=EggieBagelFace,C=US'
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
           echo 'GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey' >> "$GITHUB_ENV"
           echo 'GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android' >> "$GITHUB_ENV"
@@ -180,18 +161,15 @@ jobs:
           "$GODOT_BIN" --version
           "$GODOT_BIN" --headless --editor --path godot --quit
 
-      - name: Install Gradle template and export signed Android debug APK
+      - name: Export signed Android debug APK
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p build/android
-          "$GODOT_BIN" --headless --path godot \
-            --install-android-build-template \
-            --export-debug 'Android Debug' \
-            "$GITHUB_WORKSPACE/$APK_PATH"
+          "$GODOT_BIN" --headless --path godot --install-android-build-template --export-debug 'Android Debug' "$GITHUB_WORKSPACE/$APK_PATH"
           test -s "$APK_PATH"
 
-      - name: Verify APK, release identity, widget, WebView plugin, CMS assets and 16 KiB alignment
+      - name: Verify APK, identity, cockpit, plugin, arm64 and 16 KiB alignment
         shell: bash
         run: |
           set -euo pipefail
@@ -216,7 +194,10 @@ jobs:
           grep -q 'assets/cms/index.html' build/android/contents.txt
           grep -q 'org.godotengine.plugin.v2.CathedralAndroid' build/android/manifest.txt
           grep -q 'art.eggiebagelface.cathedral.CathedralWidgetProvider' build/android/manifest.txt
-          grep -q 'com.termux.permission.RUN_COMMAND' build/android/manifest.txt
+          if grep -q 'com.termux.permission.RUN_COMMAND' build/android/manifest.txt; then
+            echo 'Unexpected Termux command-control permission in F-Droid cockpit APK' >&2
+            exit 1
+          fi
           sha256sum "$APK_PATH" | tee build/android/sha256.txt
 
       - name: Stage private F-Droid repo input
@@ -225,18 +206,14 @@ jobs:
           set -euo pipefail
           VERSION_CODE="$(python -c 'import json; print(json.load(open("release/version.json"))["versionCode"])')"
           PACKAGE_ID="$(python -c 'import json; print(json.load(open("release/version.json"))["packageId"])')"
-          python scripts/stage_fdroid_repo.py \
-            --apk "$APK_PATH" \
-            --output build/fdroid-stage \
-            --package "$PACKAGE_ID" \
-            --version-code "$VERSION_CODE"
+          python scripts/stage_fdroid_repo.py --apk "$APK_PATH" --output build/fdroid-stage --package "$PACKAGE_ID" --version-code "$VERSION_CODE"
 
-      - name: Upload Android debug APK and private F-Droid staging bundle
+      - name: Upload KAI 9000 F-Droid Cathedral bundle
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: video-forge-cathedral-android-debug
+          name: kai9000-fdroid-cathedral
           path: |
-            build/android/video-forge-cathedral-debug.apk
+            build/android/kai9000-fdroid-cathedral-debug.apk
             build/android/sha256.txt
             build/android/signature.txt
             build/android/zipalign.txt
