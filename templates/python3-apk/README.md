@@ -18,11 +18,13 @@ This template builds a Python 3 WebView control APK for the Samsung SM-X400 lane
 ## Dependency files
 
 - `apt-build-dependencies.txt`: Ubuntu/host compiler and p4a prerequisites.
-- `requirements-build.txt`: host Python build tools. This includes p4a, Cython, wheel/build tooling and virtualenv.
+- `requirements-build.txt`: host Python build graph aligned to p4a `2026.5.9`, including its declared build dependencies and the upstream-compatible `Cython==0.29.36` pin.
 - `requirements-app.txt`: Python packages intended to exist inside the Android application. Keep this aligned with `.p4a`.
 - `.p4a`: canonical p4a APK configuration.
 
 Do not add Android runtime packages to `requirements-build.txt`. Do not add host-only build tools to `.p4a`.
+
+For p4a `2026.5.9`, do not casually upgrade Cython to 3.x or wheel beyond p4a's `wheel~=0.43.0` constraint. Those are part of the cross-compile compatibility contract, not ordinary desktop dependency freshness targets.
 
 ## Canonical Android SDK paths
 
@@ -57,7 +59,10 @@ sudo apt-get install -y --no-install-recommends "${APT_DEPS[@]}"
 
 python -m pip install --upgrade pip
 python -m pip install --requirement requirements-build.txt
-python -c 'import Cython, build, packaging, setuptools, wheel, virtualenv; print("PY_BUILD_DEPS_GREEN")'
+python -m pip check
+python -c 'import Cython, appdirs, build, colorama, jinja2, packaging, setuptools, sh, toml, wheel; print("PY_BUILD_DEPS_GREEN")'
+command -v meson
+command -v ninja
 p4a --version
 ```
 
@@ -93,7 +98,7 @@ dist/samsung-sm-x400-python-debug.apk
 A build is not GREEN until all of these pass:
 
 1. Host APT prerequisites installed.
-2. Host Python build requirements import successfully.
+2. Host Python build requirements resolve, pass `pip check`, and import successfully.
 3. SDK/NDK binaries resolve from the canonical SDK root.
 4. Static Python and `.p4a` sanity checks pass.
 5. p4a cross-compilation succeeds.
@@ -104,4 +109,4 @@ A build is not GREEN until all of these pass:
 
 Development changes stage on `samsung-sm-x400-build-candidate`. The regular workflow supports manual and branch/PR builds. The nightly workflow is defined separately and is intended to build the candidate ref without merging it automatically.
 
-GitHub scheduled workflows execute from the repository default branch. Therefore the nightly workflow becomes autonomous only after its workflow definition is present on `main`. Until then, use its `workflow_dispatch` path for candidate validation.
+GitHub scheduled workflows execute from the repository default branch. Therefore the nightly workflow becomes autonomous only after its workflow definition is present on `main`. Until then it remains a staged validation path.
