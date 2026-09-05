@@ -29,3 +29,14 @@ Build the Cathedral, not a framework zoo.
 - A candidate is GREEN only after cross-compilation, package/ABI verification, APK sanity, SHA-256 generation and artifact upload all pass.
 - Do not 'modernize' Cython/wheel independently of the pinned p4a release. Cross-compile compatibility beats desktop-package freshness.
 - The nightly workflow may build the candidate ref but must never auto-merge it. Scheduled GitHub Actions become autonomous only when the workflow definition exists on the repository default branch.
+
+## Samsung SM-X400 frontend widget lane
+
+- Canonical location: `samsung-sm-x400/frontend/widget/`.
+- The widget is opt-in and outside the APK. Do not put Termux/VNC/Ollama dependencies into the APK host or runtime requirements merely because the widget can use them.
+- Read `widget.manifest.json` before changing widget dependencies.
+- Keep `hydra_widget_setup.py` loopback-first, owned-PID only, and safe against stale PID reuse.
+- `npm run wizard` is a thin operator surface over `scripts/sm_x400_build_wizard.py`; keep orchestration in Python rather than growing a second Node control plane.
+- `npm run candidate:build` means frontend candidate without widget. `npm run candidate:build:widget` explicitly includes the widget.
+- Widget build/check code must remain dependency-free Python unless a concrete requirement proves otherwise.
+- CI should validate and stage the widget source without requiring physical Termux runtime commands to exist on the Ubuntu runner.
