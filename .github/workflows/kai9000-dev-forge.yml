@@ -1,0 +1,65 @@
+name: kai9000-dev-forge
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - samsung-sm-x400-kai9000-dev
+    paths:
+      - 'samsung-sm-x400/kai9000_dev/**'
+      - '.github/workflows/kai9000-dev-forge.yml'
+  pull_request:
+    paths:
+      - 'samsung-sm-x400/kai9000_dev/**'
+      - '.github/workflows/kai9000-dev-forge.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  native-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build essentials
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config
+
+      - name: Toolchain versions
+        run: |
+          gcc --version | head -1
+          g++ --version | head -1
+          cmake --version | head -1
+          ninja --version
+          python3 --version
+
+      - name: Configure with CMake + Ninja
+        run: |
+          cmake \
+            -S samsung-sm-x400/kai9000_dev/native \
+            -B samsung-sm-x400/kai9000_dev/build/native \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build native probe
+        run: |
+          cmake --build samsung-sm-x400/kai9000_dev/build/native --parallel
+
+      - name: Run native probe
+        run: |
+          samsung-sm-x400/kai9000_dev/build/native/kai9000_native_probe
+
+      - name: Upload Ninja build evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: kai9000-dev-native-preflight
+          path: |
+            samsung-sm-x400/kai9000_dev/build/native/kai9000_native_probe
+            samsung-sm-x400/kai9000_dev/build/native/build.ninja
+            samsung-sm-x400/kai9000_dev/build/native/CMakeCache.txt
+          if-no-files-found: error
+          retention-days: 14
