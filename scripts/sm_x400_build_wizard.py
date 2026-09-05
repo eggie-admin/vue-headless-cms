@@ -14,6 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 APPS = ROOT / "apps"
 WIDGET_BUILDER = ROOT / "scripts" / "sm_x400_widget_build.py"
+SHIZUKU_SANITY = ROOT / "scripts" / "sm_x400_shizuku_sanity.py"
 
 
 def frontend_step() -> dict[str, object]:
@@ -32,29 +33,47 @@ def widget_step() -> dict[str, object]:
     }
 
 
-def choose_interactive() -> tuple[str, bool]:
+def shizuku_step() -> dict[str, object]:
+    return {
+        "name": "shizuku",
+        "cwd": str(ROOT),
+        "command": [sys.executable, str(SHIZUKU_SANITY)],
+    }
+
+
+def choose_interactive() -> tuple[str, bool, bool]:
     print("Samsung SM-X400 build wizard")
     print("  1) Frontend only (default)")
     print("  2) Widget only")
     print("  3) Candidate frontend + optional widget")
-    print("  4) Quit")
+    print("  4) Candidate + widget + Shizuku broker")
+    print("  5) Shizuku broker contract check")
+    print("  6) Quit")
     choice = input("Select [1]: ").strip() or "1"
     if choice == "2":
-        return "widget", True
+        return "widget", True, False
     if choice == "3":
         include = input("Include optional Termux widget bundle? [y/N]: ").strip().lower() in {"y", "yes"}
-        return "candidate", include
+        return "candidate", include, False
     if choice == "4":
-        return "quit", False
-    return "frontend", False
+        return "candidate", True, True
+    if choice == "5":
+        return "shizuku", False, True
+    if choice == "6":
+        return "quit", False, False
+    return "frontend", False, False
 
 
-def plan(mode: str, with_widget: bool) -> list[dict[str, object]]:
+def plan(mode: str, with_widget: bool, with_shizuku: bool) -> list[dict[str, object]]:
     if mode == "widget":
         return [widget_step()]
+    if mode == "shizuku":
+        return [shizuku_step()]
     if mode == "candidate":
         steps = [frontend_step()]
-        if with_widget:
+        if with_shizuku:
+            steps.append(shizuku_step())
+        if with_widget or with_shizuku:
             steps.append(widget_step())
         return steps
     if mode == "frontend":
@@ -94,34 +113,45 @@ def main() -> int:
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--frontend", action="store_true", help="build only the Vue frontend")
     modes.add_argument("--widget", action="store_true", help="build only the optional widget bundle")
-    modes.add_argument("--candidate", action="store_true", help="build the frontend candidate; widget stays opt-in")
+    modes.add_argument("--shizuku", action="store_true", help="validate only the optional Shizuku broker contract")
+    modes.add_argument("--candidate", action="store_true", help="build the frontend candidate; widget and Shizuku stay opt-in")
     parser.add_argument("--with-widget", action="store_true", help="include the widget with --candidate")
+    parser.add_argument("--with-shizuku", action="store_true", help="validate Shizuku and include the widget with --candidate")
     parser.add_argument("--dry-run", action="store_true", help="print the deterministic plan without executing it")
     args = parser.parse_args()
 
     if args.with_widget and not args.candidate:
         parser.error("--with-widget is valid only with --candidate")
+    if args.with_shizuku and not args.candidate:
+        parser.error("--with-shizuku is valid only with --candidate")
 
     if args.frontend:
-        mode, with_widget = "frontend", False
+        mode, with_widget, with_shizuku = "frontend", False, False
     elif args.widget:
-        mode, with_widget = "widget", True
+        mode, with_widget, with_shizuku = "widget", True, False
+    elif args.shizuku:
+        mode, with_widget, with_shizuku = "shizuku", False, True
     elif args.candidate:
-        mode, with_widget = "candidate", args.with_widget
+        mode = "candidate"
+        with_widget = args.with_widget or args.with_shizuku
+        with_shizuku = args.with_shizuku
     elif sys.stdin.isatty():
-        mode, with_widget = choose_interactive()
+        mode, with_widget, with_shizuku = choose_interactive()
     else:
-        mode, with_widget = "frontend", False
+        mode, with_widget, with_shizuku = "frontend", False, False
 
     if mode == "quit":
         return 0
 
-    steps = plan(mode, with_widget)
+    steps = plan(mode, with_widget, with_shizuku)
     missing = validate_tools(steps)
     result = {
         "mode": mode,
         "withWidget": with_widget,
+        "withShizuku": with_shizuku,
         "widgetOptional": True,
+        "shizukuOptional": True,
+        "preferredShizukuMode": "wireless-adb",
         "steps": steps,
         "missingTools": missing,
     }
