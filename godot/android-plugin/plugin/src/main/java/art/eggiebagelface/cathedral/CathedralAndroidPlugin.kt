@@ -1,5 +1,6 @@
 package art.eggiebagelface.cathedral
 
+import android.app.admin.DevicePolicyManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -110,10 +111,43 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
     }
 
     @UsedByGodot
+    fun isManagedKioskPermitted(): Boolean {
+        val hostActivity = activity ?: return false
+        val dpm = hostActivity.getSystemService(DevicePolicyManager::class.java) ?: return false
+        return dpm.isLockTaskPermitted(hostActivity.packageName)
+    }
+
+    @UsedByGodot
+    fun requestManagedKioskStart(): Boolean {
+        val hostActivity = activity ?: return false
+        val dpm = hostActivity.getSystemService(DevicePolicyManager::class.java) ?: return false
+        if (!dpm.isLockTaskPermitted(hostActivity.packageName)) {
+            return false
+        }
+        runOnHostThread {
+            runCatching { hostActivity.startLockTask() }
+            setImmersiveKiosk(true)
+        }
+        return true
+    }
+
+    @UsedByGodot
+    fun requestManagedKioskStop(): Boolean {
+        val hostActivity = activity ?: return false
+        runOnHostThread {
+            runCatching { hostActivity.stopLockTask() }
+            setImmersiveKiosk(false)
+        }
+        return true
+    }
+
+    @UsedByGodot
     fun deviceSnapshot(): String {
         val hostActivity = activity ?: return "{}"
         val webView = WebViewCompat.getCurrentWebViewPackage(hostActivity)
         val packageManager = hostActivity.packageManager
+        val dpm = hostActivity.getSystemService(DevicePolicyManager::class.java)
+        val kioskPermitted = dpm?.isLockTaskPermitted(hostActivity.packageName) == true
         val payload = JSONObject()
             .put("manufacturer", Build.MANUFACTURER)
             .put("model", Build.MODEL)
@@ -123,7 +157,8 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
             .put("webview_version", webView?.versionName ?: "unknown")
             .put("vulkan_feature", packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL))
             .put("developer_options_control", "open_only")
-            .put("kiosk_control", "immersive_app_shell")
+            .put("kiosk_control", "managed_lock_task_when_allowlisted")
+            .put("managed_kiosk_permitted", kioskPermitted)
         return payload.toString()
     }
 
