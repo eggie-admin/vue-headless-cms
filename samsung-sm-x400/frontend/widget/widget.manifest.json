@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "samsung-sm-x400.frontend.widget",
+  "optional": true,
+  "target": {
+    "manufacturer": "Samsung",
+    "model": "SM-X400",
+    "platform": "Android 16",
+    "abi": "arm64-v8a"
+  },
+  "source": {
+    "repository": "eggie-admin/hydra-shell-android",
+    "mergeCommit": "0f7a58a52a832a2eb04c24f45fde6ded4974ec43"
+  },
+  "buildDependencies": {
+    "python": ">=3.14",
+    "node": ">=24.18 <25",
+    "npm": "12.0.2",
+    "npmPackages": []
+  },
+  "runtimeDependencies": {
+    "requiredAndroidApps": [
+      "Termux",
+      "Termux:Widget"
+    ],
+    "requiredCommands": [
+      "python3"
+    ],
+    "optionalAndroidApps": [
+      "Termux:API"
+    ],
+    "optionalCommands": [
+      "termux-wake-lock",
+      "termux-wake-unlock",
+      "axs",
+      "vncserver",
+      "websockify_rs",
+      "websockify-rs",
+      "hydra-cockpit",
+      "ollama"
+    ]
+  },
+  "loopbackPorts": {
+    "axs": 8767,
+    "vnc": 5901,
+    "websocket": 6080,
+    "cockpit": 8787,
+    "ollama": 11434
+  },
+  "buildOutput": "dist/samsung-sm-x400/frontend/widget",
+  "files": [
+    "README.md",
+    "widget.manifest.json",
+    "hydra_widget_setup.py",
+    "autopilot/SKILL.md"
+  ]
+}
