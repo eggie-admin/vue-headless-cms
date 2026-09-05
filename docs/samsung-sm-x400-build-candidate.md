@@ -79,6 +79,10 @@ Android-specific instructions live in `.github/instructions/android-apk.instruct
 
 `AGENTS.md` carries the equivalent standing contract for other AI agents.
 
+`.github/workflows/copilot-setup-steps.yml` gives the Copilot coding-agent environment the same Ubuntu, Python 3.14, Java 17, APT dependency list and p4a-compatible Python build graph used by the candidate lane. Its validation checks `pip check`, build-module imports, `meson`, `ninja`, `p4a`, Python syntax and SDK command-line-tools discovery. This setup workflow is also normal CI evidence on the candidate PR.
+
+GitHub's Copilot coding-agent setup hook is consumed from the repository default branch. The file is deliberately staged here first; once promoted to `main`, Copilot cloud sessions can use the deterministic setup automatically.
+
 Agents may propose or commit candidate fixes. They must not auto-merge PR #3, weaken the sanity gates, publish production releases, globally disable build isolation to hide a package-specific failure, or independently upgrade Cython/wheel away from the pinned p4a compatibility graph.
 
 ## Nightly lane
