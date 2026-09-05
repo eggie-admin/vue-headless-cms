@@ -45,3 +45,11 @@ It installs the Linux compiler prerequisites, Java 17, Android API 36, NDK r28c,
 ## Customize
 
 Edit `.p4a` for package/name/version/requirements. Keep the arm64-only Samsung baseline unless another ABI is deliberately required.
+
+## Local `android` recipe override
+
+`p4a-recipes/android/` is a local [python-for-android recipe](https://python-for-android.readthedocs.io/en/latest/recipes/) that shadows the bundled `android` recipe (p4a reads `./p4a-recipes` by default from this directory). It is byte-identical to the recipe shipped in the pinned `python-for-android==2026.5.9`, except for one additive fix:
+
+- `src/pyproject.toml` declares `Cython>=0.29,<3.1` in `[build-system].requires`.
+
+The bundled recipe's `src/setup.py` imports `Cython` at module scope, but ships no `pyproject.toml`, so p4a's isolated `python -m build --wheel` fell back to installing only `setuptools` and failed with `ModuleNotFoundError: No module named 'Cython'`. Declaring Cython as a build requirement lets the isolated build environment install it. This mirrors the upstream fix (kivy/python-for-android#3301) and can be dropped once a released p4a carries it.

@@ -94,6 +94,10 @@ jobs:
           grep -q '^--android_api 36$' .p4a
           grep -q '^--ndk_api 29$' .p4a
           grep -q '^--bootstrap webview$' .p4a
+          # Local `android` recipe override must declare Cython as a build
+          # requirement so p4a's isolated wheel build can import it (see README).
+          grep -q 'Cython' p4a-recipes/android/src/pyproject.toml
+          python -m py_compile p4a-recipes/android/__init__.py p4a-recipes/android/src/setup.py
           ! grep -RIE '(OPENAI_API_KEY|HF_TOKEN|GOOGLE_APPLICATION_CREDENTIALS|PRIVATE KEY)' app .p4a || false
 
       - name: Cross-compile Python3 APK
