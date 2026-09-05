@@ -21,10 +21,11 @@ Build the Cathedral, not a framework zoo.
 
 - Stage Android packaging changes on `samsung-sm-x400-build-candidate`. Do not merge PR #3 or mark it green until APK CI passes.
 - `templates/python3-apk/apt-build-dependencies.txt` is the canonical Ubuntu host package list.
-- `templates/python3-apk/requirements-build.txt` is the canonical host Python build-tool list. It must explicitly retain Cython, build/wheel tooling, packaging, setuptools and virtualenv alongside the pinned `python-for-android` version.
+- `templates/python3-apk/requirements-build.txt` is the canonical host Python build graph. It must remain compatible with `python-for-android==2026.5.9`, including `Cython==0.29.36` and p4a's `wheel~=0.43.0` constraint.
 - `templates/python3-apk/requirements-app.txt` lists app/runtime Python packages and must remain aligned with `.p4a`. Host build dependencies do not belong in `.p4a`.
 - Preserve Android API 36, NDK r28c (`28.2.13676358`), NDK API 29, `arm64-v8a`, WebView bootstrap, package id `art.eggiebagelface.samsungx400.python`, and loopback port 8765 unless an explicit architecture change is requested.
 - Derive tools from one SDK root: `cmdline-tools/latest/bin/sdkmanager`, `platform-tools/adb`, and `build-tools/36.0.0/aapt`. Do not hard-code runner-specific absolute SDK paths.
-- Before cross-compilation, run `python -m pip check`, import the declared host build modules, run static `.p4a` sanity, and confirm the SDK/NDK directories exist.
+- Before cross-compilation, run `python -m pip check`, import the declared host build modules, verify `meson`, `ninja` and `p4a`, run static `.p4a` sanity, and confirm the SDK/NDK directories exist.
 - A candidate is GREEN only after cross-compilation, package/ABI verification, APK sanity, SHA-256 generation and artifact upload all pass.
+- Do not 'modernize' Cython/wheel independently of the pinned p4a release. Cross-compile compatibility beats desktop-package freshness.
 - The nightly workflow may build the candidate ref but must never auto-merge it. Scheduled GitHub Actions become autonomous only when the workflow definition exists on the repository default branch.
