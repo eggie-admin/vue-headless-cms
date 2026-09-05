@@ -7,11 +7,15 @@ on:
       - samsung-sm-x400-kai9000-dev
     paths:
       - 'samsung-sm-x400/kai9000_dev/**'
-      - '.github/workflows/kai9000-dev-forge.yml'
+      - 'manifests/oss-vendors.lock.json'
+      - 'scripts/vendor_sanity.py'
+      - '.github/workflows/**'
   pull_request:
     paths:
       - 'samsung-sm-x400/kai9000_dev/**'
-      - '.github/workflows/kai9000-dev-forge.yml'
+      - 'manifests/oss-vendors.lock.json'
+      - 'scripts/vendor_sanity.py'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
@@ -22,12 +26,15 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: OSS vendor sanity
+        run: python3 scripts/vendor_sanity.py
 
       - name: Install build essentials
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build pkg-config
+          sudo apt-get install -y --no-install-recommends build-essential cmake ninja-build pkg-config
 
       - name: Toolchain versions
         run: |
@@ -54,7 +61,7 @@ jobs:
           samsung-sm-x400/kai9000_dev/build/native/kai9000_native_probe
 
       - name: Upload Ninja build evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: kai9000-dev-native-preflight
           path: |
