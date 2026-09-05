@@ -1,0 +1,50 @@
+{
+  "schema": "kai9000.netplan-agent.v1",
+  "name": "KAI 9000 Netplan Agent",
+  "provider_role": "OpenAI advisory automation",
+  "execution_model": "typed intent plus deterministic Python policy",
+  "privilege_boundary": {
+    "agent_runs_as_root": false,
+    "agent_can_write_etc_netplan": false,
+    "agent_can_apply_network_changes": false,
+    "operator_approval_required": true,
+    "rollback_required": true
+  },
+  "allowed_agent_tools": [
+    "netplan_inspect",
+    "netplan_propose",
+    "netplan_validate",
+    "netplan_stage_request"
+  ],
+  "forbidden_agent_tools": [
+    "shell",
+    "netplan_apply",
+    "netplan_cancel_management_interface",
+    "write_arbitrary_yaml"
+  ],
+  "transaction": {
+    "backend": "io.netplan.Netplan D-Bus configuration API",
+    "try_timeout_seconds_default": 30,
+    "timeout_action": "automatic rollback",
+    "commit_actor": "human operator"
+  },
+  "intent_schema": "schemas/netplan-intent.schema.json",
+  "network_scope_v1": [
+    "single ethernet interface",
+    "IPv4 DHCP",
+    "IPv4 static addresses",
+    "IPv4 routes",
+    "IPv4 DNS"
+  ],
+  "excluded_v1": [
+    "wifi secrets",
+    "bridges",
+    "bonds",
+    "vlans",
+    "tunnels",
+    "openvswitch",
+    "sriov",
+    "renderer mutation",
+    "firewall mutation"
+  ]
+}

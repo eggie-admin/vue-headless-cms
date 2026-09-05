@@ -1,0 +1,9 @@
+{
+  "interface": "enp1s0",
+  "ipv4": {
+    "mode": "dhcp",
+    "dns": ["1.1.1.1"]
+  },
+  "reason": "Example only: preserve DHCP while declaring an explicit resolver.",
+  "expected_management_path": "existing management LAN"
+}

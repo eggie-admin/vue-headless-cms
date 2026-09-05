@@ -1,0 +1,11 @@
+[mariadb]
+bind-address = 127.0.0.1
+skip-name-resolve
+local-infile = 0
+
+# Keep the baseline conservative. Tune memory only after measuring the host.
+max_connections = 50
+
+# UTF-8 everywhere for application data.
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
