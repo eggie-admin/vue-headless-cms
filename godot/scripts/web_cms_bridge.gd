@@ -15,6 +15,8 @@ func _ready() -> void:
     _plugin = Engine.get_singleton(PLUGIN_NAME)
     if _plugin.has_signal("cms_message"):
         _plugin.connect("cms_message", _on_cms_message)
+    if _plugin.has_signal("gallery_image_selected"):
+        _plugin.connect("gallery_image_selected", _on_gallery_image_selected)
     await get_tree().create_timer(0.35).timeout
     _plugin.openCms()
 
@@ -26,6 +28,14 @@ func close_cms() -> void:
 
 func send_to_cms(message: Dictionary) -> void:
     if _plugin: _plugin.postToCms(JSON.stringify(message))
+
+func _on_gallery_image_selected(raw: String) -> void:
+    if raw.length() > 8192:
+        push_warning("Rejected oversized gallery result")
+        return
+    var parsed = JSON.parse_string(raw)
+    if parsed is Dictionary:
+        send_to_cms({"type": "android.gallery.selected", "payload": parsed})
 
 func _on_cms_message(raw: String) -> void:
     if raw.length() > 32768:
@@ -58,5 +68,16 @@ func _on_cms_message(raw: String) -> void:
             var state := String(payload.get("state", "idle"))
             if state in allowed_states and host and host.has_method("set_avatar_state"):
                 host.set_avatar_state(StringName(state))
+        "android.gallery.pick":
+            if _plugin and _plugin.has_method("pickGalleryImage"):
+                _plugin.pickGalleryImage()
+        "android.kiosk.set":
+            if _plugin and _plugin.has_method("setImmersiveKiosk"):
+                _plugin.setImmersiveKiosk(bool(payload.get("enabled", false)))
+        "android.device.snapshot":
+            if _plugin and _plugin.has_method("deviceSnapshot"):
+                var snapshot = JSON.parse_string(String(_plugin.deviceSnapshot()))
+                if snapshot is Dictionary:
+                    send_to_cms({"type": "android.device.snapshot", "payload": snapshot})
         _:
             pass
