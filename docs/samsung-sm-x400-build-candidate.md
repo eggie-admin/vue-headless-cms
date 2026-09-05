@@ -10,13 +10,13 @@ Purpose: stage and prove the Python/WebView APK forge before changes enter `sams
 
 Canonical file: `templates/python3-apk/apt-build-dependencies.txt`
 
-This contains the compiler/autotools/JDK-adjacent host packages required by the python-for-android lane. CI reads the file directly.
+This contains the compiler/autotools host packages required by the python-for-android lane. CI reads the file directly.
 
 ### 2. Host Python build tools
 
 Canonical file: `templates/python3-apk/requirements-build.txt`
 
-This contains the pinned `python-for-android` release plus explicit Cython, wheel/build, packaging, setuptools and virtualenv tooling. These packages exist to build Android Python dependencies; they are not app payload requirements.
+This contains `python-for-android==2026.5.9`, the upstream-compatible `Cython==0.29.36` pin, and an explicit mirror of p4a's host install graph including its `wheel~=0.43.0` constraint. These packages build Android Python dependencies; they are not app payload requirements.
 
 ### 3. Android app Python packages
 
@@ -63,7 +63,7 @@ The candidate remains RED until all of the following are proven by GitHub Action
 1. APT dependency installation succeeds.
 2. `requirements-build.txt` installs successfully.
 3. `python -m pip check` is clean.
-4. Cython/build/packaging/setuptools/wheel/virtualenv import sanity succeeds.
+4. Cython/appdirs/build/colorama/jinja2/packaging/setuptools/sh/toml/wheel import sanity succeeds and `meson`, `ninja`, and `p4a` resolve.
 5. SDK manager, adb, aapt and NDK paths resolve.
 6. Static Python and `.p4a` invariants pass.
 7. p4a cross-compilation produces an APK.
@@ -79,7 +79,7 @@ Android-specific instructions live in `.github/instructions/android-apk.instruct
 
 `AGENTS.md` carries the equivalent standing contract for other AI agents.
 
-Agents may propose or commit candidate fixes. They must not auto-merge PR #3, weaken the sanity gates, publish production releases, or bypass a package-specific PEP 517 failure by globally disabling build isolation.
+Agents may propose or commit candidate fixes. They must not auto-merge PR #3, weaken the sanity gates, publish production releases, globally disable build isolation to hide a package-specific failure, or independently upgrade Cython/wheel away from the pinned p4a compatibility graph.
 
 ## Nightly lane
 
@@ -93,7 +93,7 @@ checkout_ref = samsung-sm-x400-build-candidate
 
 The cron is `17 8 * * *`, intentionally away from the top of the hour.
 
-Important GitHub Actions rule: scheduled workflows run from the repository default branch. This repository's default branch is `main`. The nightly workflow is therefore staged on the candidate branch but does not become an autonomous schedule until the workflow definition is promoted to `main`. It can remain validation-only and must never auto-merge the candidate.
+Important GitHub Actions rule: scheduled workflows run from the repository default branch. This repository's default branch is `main`. The nightly workflow is therefore staged on the candidate branch but does not become an autonomous schedule until the workflow definition is promoted to `main`. It remains validation-only and must never auto-merge the candidate.
 
 ## Promotion path
 
