@@ -1,26 +1,36 @@
 Categories:
   - Multimedia
-Name: Video Forge Cathedral Dev
-Summary: Local-first Godot and FFmpeg control surface for Samsung development
+  - System
+Name: KAI 9000 Cathedral Dev
+Summary: Local-first Godot AI cockpit for Samsung Android
 Description: |-
-  Development build of the Video Forge Cathedral interface.
+  KAI 9000 is a local-first Android AI cockpit built around Godot 4 and a
+  bundled Vue 3 WebView interface.
 
-  This package is intended for private development distribution and Samsung
-  tablet smoke testing. It uses Godot as the fullscreen interactive cage and
-  communicates with the local FastAPI control plane through typed contracts.
+  The cockpit provides CHAT, AGENTS, GALLERY, SYSTEM and CMS surfaces. AI
+  requests are converted into typed decisions before any bounded automation
+  is offered. High-impact actions require explicit operator approval and
+  arbitrary shell execution is not exposed to the model.
 
-  The Vue CMS is bundled into the APK and displayed by the CathedralAndroid
-  Godot Android v2 WebView plugin. CMS documents persist in the Termux Python
-  edge through revisioned SQLite storage. Python remains outside the APK.
+  The Samsung S24 FE lane is Knox-first and does not require root. Gallery
+  access uses the Android system Photo Picker and only the selected item is
+  copied into app-private cache. The WebView uses an app-owned HTTPS origin,
+  blocks mixed content, rejects oversized bridge messages and routes external
+  navigation to the system browser.
 
-  This metadata is for a private F-Droid repository lane. It is not a claim of
-  acceptance into the official F-Droid repository.
+  Local inference uses an optional Ollama-compatible localhost antenna with
+  Qwen 2.5 0.5B as the preferred small model. OpenAI is an optional cloud
+  reasoning lane configured outside the APK. GitHub Copilot remains a
+  developer/build assistant and is not an Android runtime authority.
+
+  This metadata stages a private F-Droid repository build. It is not a claim
+  of acceptance into the official F-Droid repository.
 SourceCode: https://github.com/eggie-admin/vue-headless-cms
 CurrentVersion: 0.6.0-dev
 CurrentVersionCode: 6
 UpdateCheckMode: Static
 MaintainerNotes: |-
   Private-repository metadata only.
-  Official F-Droid submission is intentionally blocked until the clean-room
-  application code and all redistributed assets have an explicit FLOSS license
-  and the build recipe can be reviewed for F-Droid policy compliance.
+  Official F-Droid submission remains blocked until the application, bundled
+  assets and reproducible build recipe are reviewed for full F-Droid policy
+  compliance and all redistributed content has explicit FLOSS licensing.
