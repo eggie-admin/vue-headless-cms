@@ -5,6 +5,7 @@ Reusable, arm64-first Python Android build template for the Samsung SM-X400 proj
 ## Doctrine
 
 - `python-for-android==2026.5.9` is pinned for reproducible packaging.
+- `Cython==3.0.12` supports the pinned Android recipe when its wheel build runs without isolation.
 - Android API 36 + NDK r28c are the canonical compiler lane.
 - WebView bootstrap keeps the sample small and maps cleanly to the existing kiosk architecture.
 - Python binds only to `127.0.0.1:8765` inside the APK.

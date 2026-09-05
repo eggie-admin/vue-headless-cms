@@ -83,6 +83,17 @@ jobs:
           set -euo pipefail
           python -m pip install --upgrade pip
           python -m pip install --requirement requirements-build.txt
+          python - <<'PY'
+          from pathlib import Path
+          import pythonforandroid
+
+          recipe = Path(pythonforandroid.__file__).parent / "recipes/android/__init__.py"
+          source = recipe.read_text()
+          original = "    config_env = {}\n"
+          replacement = '    extra_build_args = ["--no-isolation"]\n\n' + original
+          assert source.count(original) == 1
+          recipe.write_text(source.replace(original, replacement))
+          PY
           p4a --version
 
       - name: Static template sanity
