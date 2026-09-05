@@ -73,7 +73,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --requirement requirements-build.txt
           python -m pip check
-          python -c 'import Cython, build, packaging, setuptools, wheel, virtualenv; print("PY_BUILD_DEPS_GREEN")'
+          python -c 'import Cython, appdirs, build, colorama, jinja2, packaging, setuptools, sh, toml, wheel; print("PY_BUILD_DEPS_GREEN")'
+          command -v meson
+          command -v ninja
           p4a --version
 
       - name: Install Android API 36 and NDK r28c
