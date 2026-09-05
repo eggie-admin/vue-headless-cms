@@ -14,6 +14,7 @@ GODOT_BRIDGE = ROOT / "godot/scripts/web_cms_bridge.gd"
 CONTROL = ROOT / "termux/cathedral-control.sh"
 INSTALLER = ROOT / "termux/install-samsung-edge.sh"
 ADB_GUARD = ROOT / "scripts/samsung_background_guard_adb.sh"
+ADB_SMOKE = ROOT / "scripts/samsung_device_smoke_adb.py"
 BARK = ROOT / "scripts/samsung_bark_test.sh"
 KIOSK = ROOT / "scripts/samsung_kiosk_adb.sh"
 BENCH = ROOT / "scripts/samsung_benchmark.py"
@@ -43,6 +44,7 @@ godot_bridge = GODOT_BRIDGE.read_text(encoding="utf-8")
 control = CONTROL.read_text(encoding="utf-8")
 installer = INSTALLER.read_text(encoding="utf-8")
 adb_guard = ADB_GUARD.read_text(encoding="utf-8")
+adb_smoke = ADB_SMOKE.read_text(encoding="utf-8")
 bark = BARK.read_text(encoding="utf-8")
 kiosk = KIOSK.read_text(encoding="utf-8")
 bench = BENCH.read_text(encoding="utf-8")
@@ -89,9 +91,12 @@ check("kill_mode: am_kill" in qualification and "force_stop_forbidden: true" in 
 check("preferred_mode: android_enterprise_lock_task" in qualification and "dpc_allowlist_required: true" in qualification, "managed kiosk policy drift")
 check("unmanaged_fallback: immersive_shell_only" in qualification and "never_auto_enable_screen_pinning: true" in qualification, "unmanaged kiosk fallback drift")
 
+check("SAMSUNG_DEVICE_SMOKE_GREEN" in adb_smoke and "adb" in adb_smoke.lower(), "physical ADB smoke runner missing")
+check("RUN_IN_BACKGROUND" in adb_smoke and "standby_active" in adb_smoke, "physical smoke must inspect background guard")
+check("vulkan_version" in adb_smoke and "webviewupdate" in adb_smoke and "fastapi_unhealthy" in adb_smoke, "physical smoke coverage drift")
 check('"$ADB" shell am kill' in bark, "BARK must use ActivityManager background kill")
 check('"$ADB" shell am force-stop' not in bark, "BARK must never force-stop packages")
-check("BARK_GREEN" in bark and "fastapi" in bark.lower(), "BARK recovery proof missing")
+check("BARK_GREEN" in bark and "app_foreground" in bark and "fastapi" in bark.lower(), "BARK backend/UI recovery proof missing")
 check("dumpsys device_policy" in kiosk and "lock task" in kiosk.lower(), "kiosk device-policy diagnostic missing")
 
 check("DEFAULT_CONFIG = ROOT / \"infra/samsung/samsung-benchmark.yml\"" in bench, "benchmark runner must load canonical YAML")
@@ -103,9 +108,11 @@ check('"PyYAML>=6.0.2,<7"' in pyproject, "PyYAML benchmark dependency missing")
 scripts = package.get("scripts", {})
 check(package.get("devDependencies", {}).get("prettier") == "3.6.2", "Prettier must be pinned")
 check(scripts.get("samsung:guard:adb") == "bash ../scripts/samsung_background_guard_adb.sh", "npm Samsung guard helper missing")
+check(scripts.get("samsung:smoke:adb") == "python3 ../scripts/samsung_device_smoke_adb.py", "npm physical smoke command missing")
 check(scripts.get("samsung:bark") == "bash ../scripts/samsung_bark_test.sh", "npm BARK command missing")
 check(scripts.get("samsung:kiosk:status") == "bash ../scripts/samsung_kiosk_adb.sh status", "npm kiosk status command missing")
-check(scripts.get("samsung:qualify") == "npm run samsung:smoke && npm run samsung:bench", "npm qualification chain missing")
+check(scripts.get("samsung:qualify") == "npm run samsung:smoke && npm run samsung:bench", "npm local qualification chain missing")
+check(scripts.get("samsung:qualify:device") == "npm run samsung:smoke:adb && npm run samsung:kiosk:status && npm run samsung:bark", "npm physical qualification chain missing")
 
 check("samsung_edge_sanity.py" in forge_ci, "Forge CI Samsung gate missing")
 check("CathedralWidgetProvider" in android_ci and "com.termux.permission.RUN_COMMAND" in android_ci, "APK verification must assert widget/Termux permission")
