@@ -1,0 +1,85 @@
+{
+  "profile_version": "1.1.0",
+  "name": "Samsung Lite Edge",
+  "devices": {
+    "sm_x400": {
+      "role": "interactive_dev_tablet",
+      "ui": "godot_plus_packaged_vue_webview"
+    },
+    "s10_lite": {
+      "role": "headless_edge_node",
+      "ui": "widget_plus_optional_kiosk_shell"
+    }
+  },
+  "widget": {
+    "provider": "CathedralWidgetProvider",
+    "controls": ["on", "off", "smoke", "background_guard", "benchmark", "developer_options"],
+    "title_tap": "open_app",
+    "explicit_on_off": true,
+    "blind_toggle": false,
+    "termux_bridge": "com.termux.RUN_COMMAND",
+    "termux_control_script": "~/kai9000/bin/cathedral-control"
+  },
+  "background_guard": {
+    "automatic_normal_lane": [
+      "termux_wake_lock_on_start",
+      "termux_services_runit",
+      "wake_lock_release_on_stop"
+    ],
+    "samsung_oem_exception": {
+      "surface": "never_sleeping_apps",
+      "deeplink_action": "com.samsung.android.sm.ACTION_OPEN_CHECKABLE_LISTACTIVITY",
+      "activity_type": 2,
+      "requires_user_selection_once": true,
+      "packages": ["com.termux", "art.eggiebagelface.videoforge.dev"]
+    },
+    "privileged_dev_lane": {
+      "adb_helper": "scripts/samsung_background_guard_adb.sh",
+      "android_appops": ["RUN_IN_BACKGROUND allow", "RUN_ANY_IN_BACKGROUND allow"],
+      "standby_bucket": "active",
+      "optional_authorities": ["adb", "shizuku", "samsung_knox", "android_enterprise_device_owner"]
+    },
+    "no_accessibility_ui_automation": true,
+    "no_hidden_samsung_database_writes": true
+  },
+  "developer_mode": {
+    "baseline": "open_system_settings_only",
+    "read_global_toggle": false,
+    "write_secure_settings": false,
+    "privileged_options": ["android_enterprise_device_owner", "samsung_knox", "explicit_shizuku_adb_dev_lane"]
+  },
+  "kiosk": {
+    "baseline": "app_local_immersive_shell",
+    "lock_task_requires": "device_owner_or_affiliated_profile_owner",
+    "knox_prokiosk": "optional_enterprise_lane"
+  },
+  "webview": {
+    "production_channel": "stable",
+    "compatibility_test_channels": ["beta", "dev"],
+    "canary": "manual_only",
+    "provider_switch": "webview_devtools",
+    "remote_debug": "debug_builds_only"
+  },
+  "rendering": {
+    "godot_primary": "mobile_vulkan",
+    "compatibility_fallback": true,
+    "physical_device_gate": true
+  },
+  "termux": {
+    "service_manager": "termux-services-runit",
+    "public_bind": false,
+    "fastapi_bind": "127.0.0.1:8000",
+    "ollama_bind": "127.0.0.1:11434",
+    "x11_autostart": false,
+    "vnc_autostart": false,
+    "widget_external_command_requires_user_grant": true,
+    "boot_plugin_optional": "Termux:Boot",
+    "wake_lock_tied_to_cathedral_state": true
+  },
+  "benchmark": {
+    "smoke": ["fastapi", "ollama", "webview", "vulkan_properties", "runtime_versions"],
+    "full": ["cpu_sha256", "disk_write", "ffmpeg_h264", "smoke"],
+    "network_targets": ["127.0.0.1:8000", "127.0.0.1:11434"]
+  },
+  "doctrine": "headless_first_gui_on_demand"
+}

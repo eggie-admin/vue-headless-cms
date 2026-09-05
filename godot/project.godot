@@ -1,0 +1,20 @@
+; Video Forge Godot cage shell
+config_version=5
+
+[application]
+config/name="Video Forge Cathedral"
+run/main_scene="res://scenes/main.tscn"
+
+[display/window]
+size/viewport_width=1280
+size/viewport_height=800
+stretch/mode="canvas_items"
+subwindows/embed_subwindows=true
+
+[editor_plugins]
+enabled=PackedStringArray("res://addons/CathedralAndroid/plugin.cfg")
+
+[rendering]
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/vram_compression/import_etc2_astc=true
