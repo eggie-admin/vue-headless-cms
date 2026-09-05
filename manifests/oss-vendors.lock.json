@@ -1,0 +1,78 @@
+{
+  "schema": "kai9000.oss-vendors.v1",
+  "generated": "2026-09-05",
+  "policy": {
+    "default": "deny",
+    "immutable_refs_required": true,
+    "archived_forks_allowed": false,
+    "direct_random_forks_allowed": false,
+    "android_downstream": "termux/termux-packages",
+    "notes": "Prefer maintained Android downstream patchsets over ad-hoc forks. Upstream source identity remains pinned underneath the downstream recipe."
+  },
+  "android_downstream": {
+    "repository": "termux/termux-packages",
+    "commit": "dd40a4497987f962ea57cfd9760c8a9cc8ea3a1c",
+    "role": "Android/Termux patch and package layer",
+    "python": {
+      "recipe": "packages/python/build.sh",
+      "version": "3.14.6",
+      "upstream_repository": "python/cpython",
+      "upstream_tag": "v3.14.6",
+      "upstream_commit": "c63aec69bd59c55314c06c23f4c22c03de76fe45",
+      "source_sha256": "143b1dddefaec3bd2e21e3b839b34a2b7fb9842272883c576420d605e9f30c63",
+      "disposition": "approved_android_runtime"
+    },
+    "godot": {
+      "recipe": "x11-packages/godot/build.sh",
+      "version": "4.7.2",
+      "upstream_repository": "godotengine/godot",
+      "upstream_tag": "4.7.2-stable",
+      "upstream_commit": "ed1daf0bf001b61586d9930840f2f1394092c079",
+      "source_sha256": "e954996374cbd1cb5d72e0e3781cc537408e6ce73b010b12c6c2f308a820690a",
+      "disposition": "approved_android_editor_runtime"
+    }
+  },
+  "android_packaging": {
+    "repository": "kivy/python-for-android",
+    "tag": "v2026.05.09",
+    "commit": "58d21141f17c889bf8585f5665921d72028f8831",
+    "package_version": "2026.5.9",
+    "role": "Python Android packaging only",
+    "disposition": "approved_build_tool"
+  },
+  "github_actions": {
+    "actions/checkout": [
+      "11d5960a326750d5838078e36cf38b85af677262"
+    ],
+    "actions/setup-python": [
+      "a26af69be951a213d495a4c3e4e4022e16d87065"
+    ],
+    "actions/setup-node": [
+      "49933ea5288caeca8642d1e84afbd3f7d6820020"
+    ],
+    "actions/setup-java": [
+      "cf277c60eb25467037889841efdb72551f06f6c3",
+      "b6effb05e454b25005698d916606bdc6ffcbf961"
+    ],
+    "actions/upload-artifact": [
+      "ea165f8d65b6e75b540449e92b4886f43607fa02"
+    ],
+    "gradle/actions": [
+      "ed408507eac070d1f99cc633dbcf757c94c7933a"
+    ]
+  },
+  "rejected_candidates": [
+    {
+      "repository": "dsnopek/godot-termux-app",
+      "reason": "Name is misleading for this purpose: repository is a Termux application fork, not a Godot engine downstream."
+    },
+    {
+      "repository": "renpy/python-for-android",
+      "reason": "Archived in 2026; rejected for new KAI runtime/build adoption."
+    },
+    {
+      "repository": "cydhaselton/cpython-android",
+      "reason": "Legacy Python 3.4 branch; unsuitable for Android 16 / Python 3.14 lane."
+    }
+  ]
+}
