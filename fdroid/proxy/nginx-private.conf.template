@@ -1,0 +1,23 @@
+# Luhm OS private F-Droid static proxy.
+server {
+    listen 443 ssl http2;
+    server_name __FDROID_HOST__;
+    ssl_certificate __TLS_FULLCHAIN__;
+    ssl_certificate_key __TLS_PRIVATE_KEY__;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    auth_basic "Luhm OS private repository";
+    auth_basic_user_file __HTPASSWD_FILE__;
+
+    location /fdroid/repo/ {
+        alias __FDROID_WEBROOT__/repo/;
+        autoindex off;
+        try_files $uri =404;
+    }
+
+    location /fdroid/archive/ {
+        alias __FDROID_WEBROOT__/archive/;
+        autoindex off;
+        try_files $uri =404;
+    }
+}
