@@ -1,0 +1,188 @@
+name: luhm-os-ultima-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      authorization_phrase:
+        description: Exact release authorization phrase
+        required: true
+        type: string
+      artifact_name:
+        description: Candidate artifact name consumed by the private F-Droid proxy
+        required: true
+        default: luhm-os-apk-candidate
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: luhm-os-ultima-release
+  cancel-in-progress: false
+
+jobs:
+  build-candidate:
+    if: ${{ github.ref_name == 'luhm-os-ultima' && inputs.authorization_phrase == 'CAST ULTIMA' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      GODOT_RELEASE: 4.7.2-stable
+      GODOT_TEMPLATE_VERSION: 4.7.2.stable
+      GODOT_EDITOR_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+      GODOT_TEMPLATES_SHA256: f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011
+      APK_PATH: build/android/luhm-os-0.7.0-dev-candidate.apk
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Ultima source gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s apps/package-lock.json
+          python3 scripts/luhm_pre_ultima_gate.py
+          python3 scripts/vendor_sanity.py
+          python3 scripts/cathedral_full_sanity.py
+          python3 scripts/samsung_edge_sanity.py
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.14'
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.18.0'
+          cache: npm
+          cache-dependency-path: apps/package-lock.json
+
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+        with:
+          gradle-version: '8.13'
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platform-tools' 'build-tools;36.1.0' 'platforms;android-36'
+
+      - name: Install verified Godot editor and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT_DIR="$RUNNER_TEMP/godot-4.7.2"
+          mkdir -p "$GODOT_DIR"
+          cd "$GODOT_DIR"
+          curl --fail --location --retry 3 -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v4.7.2-stable_linux.x86_64.zip"
+          echo "${GODOT_EDITOR_SHA256}  godot.zip" | sha256sum --check --strict
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.2-stable_linux.x86_64
+          echo "GODOT_BIN=$GODOT_DIR/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"
+          curl --fail --location --retry 3 -o export_templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v4.7.2-stable_export_templates.tpz"
+          echo "${GODOT_TEMPLATES_SHA256}  export_templates.tpz" | sha256sum --check --strict
+          mkdir -p unpack
+          unzip -q export_templates.tpz -d unpack
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/${GODOT_TEMPLATE_VERSION}"
+          mkdir -p "$TEMPLATE_DIR"
+          cp -a unpack/templates/. "$TEMPLATE_DIR/"
+          test -f "$TEMPLATE_DIR/android_debug.apk"
+          test -f "$TEMPLATE_DIR/android_source.zip"
+
+      - name: Build Luhm OS WebView cockpit
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global npm@12.0.2
+          cd apps
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build --workspace=luhm-os-ui
+          test -f forge-ui/dist/index.html
+
+      - name: Build Godot Android v2 WebView plugin
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf godot/android-plugin/plugin/src/main/assets/cms
+          mkdir -p godot/android-plugin/plugin/src/main/assets/cms
+          cp -a apps/forge-ui/dist/. godot/android-plugin/plugin/src/main/assets/cms/
+          gradle -p godot/android-plugin :plugin:assemble
+          test -f godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-debug.aar
+          rm -rf godot/addons/CathedralAndroid
+          mkdir -p godot/addons/CathedralAndroid/bin/debug godot/addons/CathedralAndroid/bin/release
+          cp -a godot/android-plugin/plugin/export_scripts_template/. godot/addons/CathedralAndroid/
+          cp godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-debug.aar godot/addons/CathedralAndroid/bin/debug/CathedralAndroid-debug.aar
+          cp godot/android-plugin/plugin/build/outputs/aar/CathedralAndroid-release.aar godot/addons/CathedralAndroid/bin/release/CathedralAndroid-release.aar
+
+      - name: Configure isolated candidate signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.config/godot" build/android
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
+          KEYSTORE_PATH="$RUNNER_TEMP/luhm-os-candidate.keystore"
+          keytool -genkeypair -keystore "$KEYSTORE_PATH" -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname 'CN=Luhm OS Candidate,O=EggieBagelFace,C=US'
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+          echo 'GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey' >> "$GITHUB_ENV"
+          echo 'GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android' >> "$GITHUB_ENV"
+          echo 'candidate-ephemeral-ci; persistent identity applied only by private F-Droid proxy' > build/android/signing-mode.txt
+
+      - name: Import and export Android candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path godot --quit
+          "$GODOT_BIN" --headless --path godot --install-android-build-template --export-debug 'Android Debug' "$GITHUB_WORKSPACE/$APK_PATH"
+          test -s "$APK_PATH"
+
+      - name: Verify candidate identity and architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          BT="$ANDROID_HOME/build-tools/36.1.0"
+          "$BT/apksigner" verify --verbose --print-certs "$APK_PATH" | tee build/android/signature.txt
+          "$BT/zipalign" -c -P 16 -v 4 "$APK_PATH" | tee build/android/zipalign.txt
+          "$BT/aapt" dump badging "$APK_PATH" | tee build/android/badging.txt
+          unzip -l "$APK_PATH" | tee build/android/contents.txt
+          VERSION_NAME="$(python3 -c 'import json; print(json.load(open("release/version.json"))["version"])')"
+          VERSION_CODE="$(python3 -c 'import json; print(json.load(open("release/version.json"))["versionCode"])')"
+          PACKAGE_ID="$(python3 -c 'import json; print(json.load(open("release/version.json"))["packageId"])')"
+          grep -q "package: name='$PACKAGE_ID'" build/android/badging.txt
+          grep -q "versionCode='$VERSION_CODE'" build/android/badging.txt
+          grep -q "versionName='$VERSION_NAME'" build/android/badging.txt
+          grep -q 'lib/arm64-v8a/' build/android/contents.txt
+          ! grep -qE 'lib/(armeabi-v7a|x86|x86_64)/' build/android/contents.txt
+          grep -q 'assets/cms/index.html' build/android/contents.txt
+          sha256sum "$APK_PATH" | tee build/android/sha256.txt
+          printf '%s\n' "${GITHUB_SHA}" > build/android/source-sha.txt
+
+      - name: Upload Luhm OS candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: |
+            build/android/luhm-os-0.7.0-dev-candidate.apk
+            build/android/sha256.txt
+            build/android/signature.txt
+            build/android/zipalign.txt
+            build/android/badging.txt
+            build/android/signing-mode.txt
+            build/android/source-sha.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Next gate
+        run: |
+          echo 'Candidate only. Run luhm-os-fdroid-private-proxy with this workflow run ID + source SHA to apply persistent app/repo signing and publish the private F-Droid repository.' >> "$GITHUB_STEP_SUMMARY"
