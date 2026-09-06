@@ -15,7 +15,7 @@ on:
       - 'infra/**'
       - 'scripts/**'
       - 'tests/**'
-      - 'samsung-sm-x400/frontend/widget/**'
+      - 'samsung-sm-x400/**'
       - 'README.md'
       - 'AGENTS.md'
       - '.github/copilot-instructions.md'
@@ -36,7 +36,7 @@ on:
       - 'infra/**'
       - 'scripts/**'
       - 'tests/**'
-      - 'samsung-sm-x400/frontend/widget/**'
+      - 'samsung-sm-x400/**'
       - 'README.md'
       - 'AGENTS.md'
       - '.github/copilot-instructions.md'
@@ -63,6 +63,8 @@ jobs:
       - run: npm run build --workspace=video-forge-ui
       - name: Smoke npm-orchestrated backend install and runtime
         run: npm run backend:install-smoke
+      - name: Validate full Samsung SM-X400 constellation
+        run: npm run samsung:full:check
       - name: Validate optional SM-X400 widget lane
         run: npm run widget:check
       - name: Validate optional Shizuku privilege broker
@@ -85,6 +87,7 @@ jobs:
       - run: python -m pip install -e ./server
       - run: python -m compileall -q server/app scripts tests samsung-sm-x400/frontend/widget
       - run: python scripts/samsung_benchmark.py --validate-config
+      - run: python scripts/sm_x400_full_samsung_sanity.py
       - run: python scripts/sm_x400_widget_build.py --check
       - run: python scripts/sm_x400_shizuku_sanity.py
       - run: python -m unittest discover -s tests -v
@@ -109,6 +112,7 @@ jobs:
       - run: python -m json.tool analytics/event-catalog.json >/dev/null
       - run: python -m json.tool infra/edge/edge-security.manifest.json >/dev/null
       - run: python -m json.tool infra/samsung/samsung-lite-profile.json >/dev/null
+      - run: python -m json.tool samsung-sm-x400/samsung-dev-stack.manifest.json >/dev/null
       - run: python -m json.tool samsung-sm-x400/frontend/widget/widget.manifest.json >/dev/null
       - run: python -m json.tool samsung-sm-x400/frontend/widget/shizuku/shizuku.manifest.json >/dev/null
       - run: |
@@ -125,5 +129,6 @@ jobs:
       - run: python scripts/edge_security_sanity.py
       - run: python scripts/cloud_provider_sanity.py
       - run: python scripts/samsung_edge_sanity.py
+      - run: python scripts/sm_x400_full_samsung_sanity.py
       - run: python scripts/sm_x400_widget_build.py --check
       - run: python scripts/sm_x400_shizuku_sanity.py
