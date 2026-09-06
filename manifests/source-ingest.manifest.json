@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "project": "Samsung SM-X400",
+  "branch": "samsung-sm-x400-ai",
+  "purpose": "Deterministic source-code corpus for local Ollama retrieval and Lum/OpenAI context assembly",
+  "authority": "Python builds the corpus; models may read retrieved chunks but may not execute source code or authorize mutations",
+  "inputs": {
+    "root": ".",
+    "text_only": true,
+    "follow_symlinks": false,
+    "max_file_bytes": 524288,
+    "extensions": [
+      ".py",
+      ".gd",
+      ".kt",
+      ".kts",
+      ".js",
+      ".ts",
+      ".vue",
+      ".json",
+      ".toml",
+      ".yaml",
+      ".yml",
+      ".sh",
+      ".md",
+      ".html",
+      ".css",
+      ".xml",
+      ".sql"
+    ]
+  },
+  "exclusions": {
+    "directories": [
+      ".git",
+      ".gradle",
+      ".venv",
+      "build",
+      "dist",
+      "logs",
+      "node_modules",
+      "private",
+      "state",
+      "vendor"
+    ],
+    "secret_name_markers": [
+      "credential",
+      "credentials",
+      "passwd",
+      "password",
+      "secret",
+      "secrets",
+      "token"
+    ],
+    "secret_suffixes": [
+      ".key",
+      ".keystore",
+      ".jks",
+      ".p12",
+      ".pfx",
+      ".pem",
+      ".sqlite",
+      ".sqlite3"
+    ]
+  },
+  "chunking": {
+    "max_lines": 120,
+    "max_chars": 12000,
+    "overlap_lines": 12,
+    "provenance": [
+      "path",
+      "language",
+      "file_sha256",
+      "chunk_sha256",
+      "start_line",
+      "end_line"
+    ]
+  },
+  "outputs": {
+    "manifest": "source-manifest.json",
+    "corpus": "source-chunks.jsonl",
+    "format": "utf-8 newline-delimited JSON"
+  },
+  "consumers": {
+    "ollama": "local retrieval/context only",
+    "openai_lum": "retrieved context only; permanent provider keys remain backend-only",
+    "hugging_face": "future embeddings/model metadata lane after license gate"
+  },
+  "prohibited": [
+    "execute_ingested_source",
+    "ingest_secret_files",
+    "ingest_runtime_state_databases",
+    "model_authored_shell_execution",
+    "automatic_code_mutation_without_python_policy"
+  ]
+}

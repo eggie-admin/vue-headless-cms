@@ -1,0 +1,123 @@
+name: samsung-source-ingest
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [samsung-sm-x400-ai]
+    paths:
+      - 'apps/package.json'
+      - 'scripts/source_ingest.py'
+      - 'scripts/vendor_docs_ingest.py'
+      - 'scripts/build_deep_research_stub.py'
+      - 'scripts/research_corpus_sanity.py'
+      - 'manifests/source-ingest.manifest.json'
+      - 'manifests/vendor-docs.manifest.json'
+      - 'manifests/deep-research.stub.json'
+      - 'manifests/deep-research.stub.b64'
+      - '.github/workflows/samsung-source-ingest.yml'
+      - 'server/**'
+      - 'godot/**'
+      - 'termux/**'
+      - 'infra/**'
+      - 'schemas/**'
+      - 'analytics/**'
+      - 'docs/**'
+  pull_request:
+    branches: [samsung-sm-x400]
+    paths:
+      - 'apps/package.json'
+      - 'scripts/source_ingest.py'
+      - 'scripts/vendor_docs_ingest.py'
+      - 'scripts/build_deep_research_stub.py'
+      - 'scripts/research_corpus_sanity.py'
+      - 'manifests/source-ingest.manifest.json'
+      - 'manifests/vendor-docs.manifest.json'
+      - 'manifests/deep-research.stub.json'
+      - 'manifests/deep-research.stub.b64'
+      - '.github/workflows/samsung-source-ingest.yml'
+      - 'server/**'
+      - 'godot/**'
+      - 'termux/**'
+      - 'infra/**'
+      - 'schemas/**'
+      - 'analytics/**'
+      - 'docs/**'
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Validate source and research contracts
+        run: |
+          set -euo pipefail
+          python -m json.tool manifests/source-ingest.manifest.json >/dev/null
+          python -m json.tool manifests/vendor-docs.manifest.json >/dev/null
+          python -m json.tool manifests/deep-research.stub.json >/dev/null
+          python -m py_compile \
+            scripts/source_ingest.py \
+            scripts/vendor_docs_ingest.py \
+            scripts/build_deep_research_stub.py \
+            scripts/research_corpus_sanity.py
+          python scripts/source_ingest.py --smoke
+          python scripts/vendor_docs_ingest.py --smoke
+          python scripts/vendor_docs_ingest.py
+          python scripts/build_deep_research_stub.py --check
+          python scripts/research_corpus_sanity.py
+
+      - name: Build deterministic source corpus
+        run: |
+          set -euo pipefail
+          rm -rf build/source-ingest
+          mkdir -p build
+          python scripts/source_ingest.py --root . --output build/source-ingest | tee build/source-ingest.log
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path('build/source-ingest')
+          manifest = json.loads((root / 'source-manifest.json').read_text(encoding='utf-8'))
+          corpus = root / manifest['corpus']['path']
+          digest = hashlib.sha256(corpus.read_bytes()).hexdigest()
+          assert digest == manifest['corpus']['sha256']
+          assert manifest['policy']['read_only'] is True
+          assert manifest['policy']['execute_source'] is False
+          assert manifest['policy']['secret_files_excluded'] is True
+          assert manifest['counts']['files'] > 0
+          assert manifest['counts']['chunks'] > 0
+          forbidden = {'.env', 'node_modules', '/state/', '/logs/', 'private/'}
+          for item in manifest['files']:
+              path = item['path']
+              assert not any(marker in path for marker in forbidden), path
+          print(
+              'SOURCE_INGEST_CI_GREEN '
+              f"files={manifest['counts']['files']} "
+              f"chunks={manifest['counts']['chunks']} "
+              f"sha256={digest}"
+          )
+          PY
+
+      - name: Upload source and research contracts
+        uses: actions/upload-artifact@v4
+        with:
+          name: samsung-sm-x400-source-ingest
+          path: |
+            build/source-ingest/source-manifest.json
+            build/source-ingest/source-chunks.jsonl
+            build/source-ingest.log
+            manifests/source-ingest.manifest.json
+            manifests/vendor-docs.manifest.json
+            manifests/deep-research.stub.json
+            manifests/deep-research.stub.b64
+          if-no-files-found: error
+          retention-days: 14
