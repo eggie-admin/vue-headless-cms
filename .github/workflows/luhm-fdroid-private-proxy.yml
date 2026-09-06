@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       source_run_id:
-        description: Successful Android APK workflow run ID to import
+        description: Successful Luhm OS candidate workflow run ID to import
         required: true
         type: string
       source_sha:
@@ -12,12 +12,12 @@ on:
         required: true
         type: string
       source_artifact_name:
-        description: GitHub artifact containing exactly one APK
+        description: GitHub artifact containing exactly one Luhm OS candidate APK
         required: true
-        default: kai9000-fdroid-cathedral
+        default: luhm-os-apk-candidate
         type: string
       repo_url:
-        description: Final HTTPS URL ending in /fdroid/repo/
+        description: Final private HTTPS URL ending in /fdroid/repo/
         required: true
         default: https://fdroid.example.invalid/fdroid/repo/
         type: string
