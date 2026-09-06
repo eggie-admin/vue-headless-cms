@@ -3,10 +3,13 @@ set -euo pipefail
 
 PACKAGE_ID='art.eggiebagelface.videoforge.dev'
 : "${SOURCE_RUN_ID:?}"
+: "${SOURCE_SHA:?}"
 : "${SOURCE_ARTIFACT_NAME:?}"
 : "${REPO_URL:?}"
 : "${GH_TOKEN:?}"
 
+[[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]] || { echo 'source_run_id must be numeric' >&2; exit 19; }
+[[ "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]] || { echo 'source_sha must be a full 40-character Git SHA' >&2; exit 19; }
 [[ "$REPO_URL" == https://* ]] || { echo 'repo_url must use HTTPS' >&2; exit 20; }
 [[ "$REPO_URL" == */fdroid/repo/ || "$REPO_URL" == */fdroid/repo ]] || {
   echo 'repo_url must end in /fdroid/repo/' >&2; exit 21;
@@ -36,23 +39,47 @@ rm -rf work
 mkdir -p work/source work/keys work/fdroid/repo work/fdroid/metadata work/provenance
 chmod 700 work/keys
 umask 077
+cleanup() {
+  rm -f work/keys/app.keystore work/keys/fdroid-repo.keystore work/fdroid/config.yml "$HOME/.ssh/id_ed25519" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+run_api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}"
+curl --fail --silent --show-error \
+  -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
+  "$run_api" > work/provenance/source-run.json
+run_status="$(jq -r '.status // empty' work/provenance/source-run.json)"
+run_conclusion="$(jq -r '.conclusion // empty' work/provenance/source-run.json)"
+run_sha="$(jq -r '.head_sha // empty' work/provenance/source-run.json)"
+run_repo="$(jq -r '.repository.full_name // empty' work/provenance/source-run.json)"
+[[ "$run_status" == 'completed' && "$run_conclusion" == 'success' ]] || {
+  echo "Source workflow is not completed/success: status=$run_status conclusion=$run_conclusion" >&2; exit 23;
+}
+[[ "$run_repo" == "$GITHUB_REPOSITORY" ]] || { echo 'Source workflow repository mismatch' >&2; exit 23; }
+[[ "${run_sha,,}" == "${SOURCE_SHA,,}" ]] || {
+  echo "Source SHA mismatch: run=$run_sha requested=$SOURCE_SHA" >&2; exit 23;
+}
 
 api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/artifacts?per_page=100"
 curl --fail --silent --show-error \
   -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
   "$api" > work/provenance/artifacts.json
-artifact_id="$(jq -r --arg n "$SOURCE_ARTIFACT_NAME" \
+mapfile -t artifact_ids < <(jq -r --arg n "$SOURCE_ARTIFACT_NAME" \
   '.artifacts[] | select(.name==$n and .expired==false) | .id' \
-  work/provenance/artifacts.json | head -1)"
-[[ "$artifact_id" =~ ^[0-9]+$ ]] || { echo 'Artifact missing or expired' >&2; exit 23; }
+  work/provenance/artifacts.json)
+[[ "${#artifact_ids[@]}" -eq 1 && "${artifact_ids[0]}" =~ ^[0-9]+$ ]] || {
+  echo "Expected exactly one non-expired artifact named $SOURCE_ARTIFACT_NAME" >&2; exit 24;
+}
+artifact_id="${artifact_ids[0]}"
 
 curl --fail --location --silent --show-error \
   -H "Authorization: Bearer $GH_TOKEN" -H 'Accept: application/vnd.github+json' \
   "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" \
   -o work/source-artifact.zip
+sha256sum work/source-artifact.zip > work/provenance/source-artifact.sha256
 unzip -q work/source-artifact.zip -d work/source
 mapfile -t apks < <(find work/source -type f -name '*.apk' -print)
-[[ "${#apks[@]}" -eq 1 ]] || { echo "Expected one APK, found ${#apks[@]}" >&2; exit 24; }
+[[ "${#apks[@]}" -eq 1 ]] || { echo "Expected one APK, found ${#apks[@]}" >&2; exit 25; }
 SOURCE_APK="${apks[0]}"
 sha256sum "$SOURCE_APK" > work/provenance/source-apk.sha256
 
@@ -60,7 +87,7 @@ sha256sum "$SOURCE_APK" > work/provenance/source-apk.sha256
 pkg="$("$AAPT" dump badging "$SOURCE_APK" | sed -n "s/^package: name='\([^']*\)'.*/\1/p" | head -1)"
 vcode="$("$AAPT" dump badging "$SOURCE_APK" | sed -n "s/^package:.*versionCode='\([^']*\)'.*/\1/p" | head -1)"
 vname="$("$AAPT" dump badging "$SOURCE_APK" | sed -n "s/^package:.*versionName='\([^']*\)'.*/\1/p" | head -1)"
-[[ "$pkg" == "$PACKAGE_ID" && "$vcode" =~ ^[0-9]+$ && -n "$vname" ]] || exit 25
+[[ "$pkg" == "$PACKAGE_ID" && "$vcode" =~ ^[0-9]+$ && -n "$vname" ]] || exit 26
 export SOURCE_VERSION_CODE="$vcode" SOURCE_VERSION_NAME="$vname" PACKAGE_ID
 
 printf '%s' "$LUHM_APP_KEYSTORE_B64" | base64 --decode > work/keys/app.keystore
@@ -77,7 +104,7 @@ actual="$("$APKSIGNER" verify --print-certs "$SIGNED_APK" |
   tr -d ':' | tr '[:upper:]' '[:lower:]')"
 expected="$(printf '%s' "$LUHM_APP_CERT_SHA256" | tr -d ':' | tr '[:upper:]' '[:lower:]')"
 [[ "$actual" =~ ^[0-9a-f]{64}$ && "$actual" == "$expected" ]] || {
-  echo 'Persistent APK signer mismatch' >&2; exit 26;
+  echo 'Persistent APK signer mismatch' >&2; exit 27;
 }
 export APP_CERT_SHA256="$actual"
 sha256sum "$SIGNED_APK" > work/provenance/signed-apk.sha256
@@ -128,7 +155,7 @@ chmod 600 work/fdroid/config.yml
     sha256sum | awk '{print toupper($1)}' > repo-fingerprint.txt
 )
 fingerprint="$(cat work/fdroid/repo-fingerprint.txt)"
-[[ "$fingerprint" =~ ^[0-9A-F]{64}$ ]] || exit 27
+[[ "$fingerprint" =~ ^[0-9A-F]{64}$ ]] || exit 28
 export REPO_FINGERPRINT="$fingerprint"
 
 python3 - <<'PY'
@@ -142,6 +169,8 @@ Path('work/fdroid/import.json').write_text(json.dumps({
  'packageId':os.environ['PACKAGE_ID'],
  'versionName':os.environ['SOURCE_VERSION_NAME'],
  'versionCode':int(os.environ['SOURCE_VERSION_CODE']),
+ 'sourceRunId':int(os.environ['SOURCE_RUN_ID']),
+ 'sourceSha':os.environ['SOURCE_SHA'].lower(),
  'url':base+'/',
  'fingerprint':fp,
  'importUrl':base+'/?fingerprint='+fp,
@@ -154,23 +183,29 @@ find work/fdroid/repo -type f -print0 | sort -z | xargs -0 sha256sum > work/fdro
 if [[ "${PUBLISH:-false}" == 'true' ]]; then
   deploy_required=(LUHM_FDROID_DEPLOY_HOST LUHM_FDROID_DEPLOY_USER LUHM_FDROID_DEPLOY_PATH LUHM_FDROID_DEPLOY_SSH_KEY LUHM_FDROID_DEPLOY_HOST_KEY)
   for name in "${deploy_required[@]}"; do
-    [[ -n "${!name:-}" ]] || { echo "Missing deploy secret: $name" >&2; exit 28; }
+    [[ -n "${!name:-}" ]] || { echo "Missing deploy secret: $name" >&2; exit 29; }
   done
+  [[ "$LUHM_FDROID_DEPLOY_PATH" == /* && "$LUHM_FDROID_DEPLOY_PATH" != '/' ]] || {
+    echo 'Deploy path must be an absolute non-root path' >&2; exit 30;
+  }
   install -d -m 700 "$HOME/.ssh"
   printf '%s\n' "$LUHM_FDROID_DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
   printf '%s\n' "$LUHM_FDROID_DEPLOY_HOST_KEY" > "$HOME/.ssh/known_hosts"
   chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
   remote="${LUHM_FDROID_DEPLOY_USER}@${LUHM_FDROID_DEPLOY_HOST}"
   root="${LUHM_FDROID_DEPLOY_PATH%/}"
-  ssh -i "$HOME/.ssh/id_ed25519" "$remote" "mkdir -p '$root/repo' '$root/archive'"
-  rsync -az --delete -e "ssh -i $HOME/.ssh/id_ed25519" work/fdroid/repo/ "$remote:$root/repo/"
-  [[ ! -d work/fdroid/archive ]] || rsync -az --delete -e "ssh -i $HOME/.ssh/id_ed25519" work/fdroid/archive/ "$remote:$root/archive/"
+  incoming="$root/.incoming-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT:-1}"
+  ssh -i "$HOME/.ssh/id_ed25519" "$remote" "rm -rf '$incoming' && mkdir -p '$incoming/repo' '$incoming/archive' '$root/repo' '$root/archive'"
+  rsync -az -e "ssh -i $HOME/.ssh/id_ed25519" work/fdroid/repo/ "$remote:$incoming/repo/"
+  [[ ! -d work/fdroid/archive ]] || rsync -az -e "ssh -i $HOME/.ssh/id_ed25519" work/fdroid/archive/ "$remote:$incoming/archive/"
+  ssh -i "$HOME/.ssh/id_ed25519" "$remote" "rsync -a --delete '$incoming/repo/' '$root/repo/' && rsync -a --delete '$incoming/archive/' '$root/archive/' && rm -rf '$incoming'"
 fi
 
 cat > work/provenance/summary.md <<EOF
 ## Luhm OS private F-Droid proxy
 
 - Source run: ${SOURCE_RUN_ID}
+- Source SHA: ${SOURCE_SHA}
 - Source artifact: ${SOURCE_ARTIFACT_NAME}
 - Package: ${PACKAGE_ID}
 - Version: ${SOURCE_VERSION_NAME} (${SOURCE_VERSION_CODE})
