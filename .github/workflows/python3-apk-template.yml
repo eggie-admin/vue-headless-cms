@@ -77,11 +77,18 @@ jobs:
             "ndk;${NDK_VERSION}"
           test -d "$ANDROID_HOME/ndk/${NDK_VERSION}"
 
-      - name: Install pinned python-for-android
+      - name: Install Cython for build dependencies
         working-directory: ${{ env.TEMPLATE_DIR }}
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
+          python -m pip install --upgrade Cython setuptools wheel
+          python -c 'import Cython; print(Cython.__version__)'
+
+      - name: Install pinned python-for-android
+        working-directory: ${{ env.TEMPLATE_DIR }}
+        run: |
+          set -euo pipefail
           python -m pip install --requirement requirements-build.txt
           p4a --version
 
