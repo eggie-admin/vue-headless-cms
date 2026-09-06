@@ -1,0 +1,57 @@
+name: KAI9000 Remote Smoke Reference
+
+on:
+  pull_request:
+    paths:
+      - "integrations/kai9000.remote-smoke.json"
+      - ".github/workflows/kai9000-remote-smoke-ref.yml"
+  push:
+    branches: [main]
+    paths:
+      - "integrations/kai9000.remote-smoke.json"
+      - ".github/workflows/kai9000-remote-smoke-ref.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-kai9000-remote-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify pinned KAI9000 remote-smoke baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          MANIFEST="integrations/kai9000.remote-smoke.json"
+          REPO="$(jq -r .canonical_repository "$MANIFEST")"
+          COMMIT="$(jq -r .canonical_commit "$MANIFEST")"
+          WORKFLOW="$(jq -r .workflow "$MANIFEST")"
+          RUNNER="$(jq -r .runner "$MANIFEST")"
+
+          test "$(jq -r .integration_strategy "$MANIFEST")" = "reference_not_copy"
+          test "$(jq -r .secrets_in_repo "$MANIFEST")" = "false"
+
+          API="https://api.github.com/repos/${REPO}/commits/${COMMIT}"
+          curl --fail --silent --show-error --location \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$API" > /tmp/kai-commit.json
+          test "$(jq -r .sha /tmp/kai-commit.json)" = "$COMMIT"
+
+          RAW="https://raw.githubusercontent.com/${REPO}/${COMMIT}"
+          curl --fail --silent --show-error --location "$RAW/$WORKFLOW" > /tmp/kai-workflow.yml
+          curl --fail --silent --show-error --location "$RAW/$RUNNER" > /tmp/kai-smoke.py
+
+          grep -q 'KAI9000 Remote AI Media Smoke' /tmp/kai-workflow.yml
+          grep -q 'OPENAI_MODELS_URL' /tmp/kai-smoke.py
+          grep -q 'EDGE_REPO_URL' /tmp/kai-smoke.py
+          grep -q 'check_media_service' /tmp/kai-smoke.py
+
+          echo "KAI9000 REMOTE SMOKE REFERENCE GREEN"
+          echo "repo=$REPO"
+          echo "commit=$COMMIT"
