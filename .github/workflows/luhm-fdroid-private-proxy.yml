@@ -1,0 +1,89 @@
+name: luhm-os-fdroid-private-proxy
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Successful Android APK workflow run ID to import
+        required: true
+        type: string
+      source_artifact_name:
+        description: GitHub artifact containing exactly one APK
+        required: true
+        default: kai9000-fdroid-cathedral
+        type: string
+      repo_url:
+        description: Final HTTPS URL ending in /fdroid/repo/
+        required: true
+        default: https://fdroid.example.invalid/fdroid/repo/
+        type: string
+      publish:
+        description: Deploy generated repo to configured private HTTPS proxy
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: luhm-os-fdroid-private-proxy
+  cancel-in-progress: false
+
+jobs:
+  proxy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+      SOURCE_ARTIFACT_NAME: ${{ inputs.source_artifact_name }}
+      REPO_URL: ${{ inputs.repo_url }}
+      PUBLISH: ${{ inputs.publish }}
+      GH_TOKEN: ${{ github.token }}
+      LUHM_APP_KEYSTORE_B64: ${{ secrets.LUHM_APP_KEYSTORE_B64 }}
+      LUHM_APP_KEYSTORE_PASSWORD: ${{ secrets.LUHM_APP_KEYSTORE_PASSWORD }}
+      LUHM_APP_KEY_ALIAS: ${{ secrets.LUHM_APP_KEY_ALIAS }}
+      LUHM_APP_KEY_PASSWORD: ${{ secrets.LUHM_APP_KEY_PASSWORD }}
+      LUHM_APP_CERT_SHA256: ${{ secrets.LUHM_APP_CERT_SHA256 }}
+      LUHM_FDROID_KEYSTORE_B64: ${{ secrets.LUHM_FDROID_KEYSTORE_B64 }}
+      LUHM_FDROID_KEYSTORE_PASSWORD: ${{ secrets.LUHM_FDROID_KEYSTORE_PASSWORD }}
+      LUHM_FDROID_KEY_ALIAS: ${{ secrets.LUHM_FDROID_KEY_ALIAS }}
+      LUHM_FDROID_KEY_PASSWORD: ${{ secrets.LUHM_FDROID_KEY_PASSWORD }}
+      LUHM_FDROID_KEY_DNAME: ${{ secrets.LUHM_FDROID_KEY_DNAME }}
+      LUHM_FDROID_DEPLOY_HOST: ${{ secrets.LUHM_FDROID_DEPLOY_HOST }}
+      LUHM_FDROID_DEPLOY_USER: ${{ secrets.LUHM_FDROID_DEPLOY_USER }}
+      LUHM_FDROID_DEPLOY_PATH: ${{ secrets.LUHM_FDROID_DEPLOY_PATH }}
+      LUHM_FDROID_DEPLOY_SSH_KEY: ${{ secrets.LUHM_FDROID_DEPLOY_SSH_KEY }}
+      LUHM_FDROID_DEPLOY_HOST_KEY: ${{ secrets.LUHM_FDROID_DEPLOY_HOST_KEY }}
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Static proxy sanity
+        run: python3 scripts/luhm_fdroid_proxy_sanity.py
+
+      - name: Install fdroidserver proxy tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fdroidserver jq unzip rsync openssh-client
+
+      - name: Import, sign and stage F-Droid proxy
+        run: bash scripts/luhm_fdroid_proxy.sh
+
+      - name: Upload signed repository bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: luhm-os-fdroid-private-repo
+          path: |
+            work/fdroid/repo/**
+            work/fdroid/archive/**
+            work/fdroid/import.json
+            work/fdroid/repo-fingerprint.txt
+            work/fdroid/SHA256SUMS
+            work/provenance/**
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summary
+        run: cat work/provenance/summary.md >> "$GITHUB_STEP_SUMMARY"
