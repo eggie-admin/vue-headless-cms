@@ -7,6 +7,10 @@ on:
         description: Successful Android APK workflow run ID to import
         required: true
         type: string
+      source_sha:
+        description: Exact Git commit SHA expected for the source workflow run
+        required: true
+        type: string
       source_artifact_name:
         description: GitHub artifact containing exactly one APK
         required: true
@@ -37,6 +41,7 @@ jobs:
     timeout-minutes: 30
     env:
       SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
       SOURCE_ARTIFACT_NAME: ${{ inputs.source_artifact_name }}
       REPO_URL: ${{ inputs.repo_url }}
       PUBLISH: ${{ inputs.publish }}
