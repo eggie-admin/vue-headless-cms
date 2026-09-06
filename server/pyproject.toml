@@ -1,7 +1,7 @@
 [project]
-name = "video-forge-control"
-version = "0.6.0"
-description = "Single Python control plane for Video Forge tablet, persistent Vue CMS, boss agents, feeds, compatibility routes and cloud sync"
+name = "luhm-os-control"
+version = "0.7.0"
+description = "Luhm OS Python 3 control plane for the rooted Samsung development lane, persistent Vue CMS, bounded boss agents, feeds, compatibility routes and cloud sync; working title KAI 9000"
 requires-python = ">=3.13,<3.15"
 dependencies = [
   "fastapi[standard]>=0.116",
