@@ -1,0 +1,26 @@
+{
+  "schema": "kai9000.samsung-dev.ai-contract.v1",
+  "target_repo": "eggie-admin/vue-headless-cms",
+  "target_branch": "samsung-sm-s721u1-kai9000-fdroid-cathedral",
+  "purpose": "development-only reference to canonical ordinary-Termux AI/RSS runtime",
+  "runtime": {
+    "owner": "eggie-admin/hydra-shell-android",
+    "canonical_path": "ultima/ollama-ffmpeg-antenna-v3/ai_feed",
+    "api_base": "http://127.0.0.1:8797/api/ai",
+    "ollama": "http://127.0.0.1:11434"
+  },
+  "android": {
+    "api": 36,
+    "abi": "arm64-v8a",
+    "secure_folder": "client-only-dev-probe",
+    "embedded_production_ai": "future-separate-gate"
+  },
+  "policy": {
+    "no_runtime_duplication": true,
+    "no_public_bind": true,
+    "no_model_shell": true,
+    "no_model_adb": true,
+    "no_model_shizuku": true,
+    "apk_build_owner": "GitHub Actions after CAST ULTIMA"
+  }
+}
