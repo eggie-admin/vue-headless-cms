@@ -1,8 +1,18 @@
 {
-  "schema": "kai9000.samsung-dev.ai-contract.v1",
+  "schema": "kai9000.samsung-dev.ai-contract.v2",
   "target_repo": "eggie-admin/vue-headless-cms",
   "target_branch": "samsung-sm-s721u1-kai9000-fdroid-cathedral",
+  "staging_branch": "kai9000-samsung-agent-rss-merge-010",
   "purpose": "development-only reference to canonical ordinary-Termux AI/RSS runtime",
+  "source_of_truth": {
+    "provider": "Google Drive",
+    "folder_id": "17SEblnKbYTUnG7gXeR7vYukE7RcfJO4K",
+    "payload_file_id": "1OSTd94Rh2l-2asRCT73exFtjYjn-qRX-",
+    "payload_sha256": "a3274eff7d14d338882a27bff140e1a6bce50aa41ebf3d3906cc5fd5d7cebfd7",
+    "seal_file_id": "1EygHwwoLUhDYh9pbaucL7FlKA1D5EN7_",
+    "seal_sha256": "1bb49f5f8c05913051d5a8cb8b63f420594bb66ce9cbf5cc28b9289bdcb45a4d",
+    "lock_file": "ai/drive-source-of-truth.json"
+  },
   "runtime": {
     "owner": "eggie-admin/hydra-shell-android",
     "canonical_path": "ultima/ollama-ffmpeg-antenna-v3/ai_feed",
@@ -21,6 +31,8 @@
     "no_model_shell": true,
     "no_model_adb": true,
     "no_model_shizuku": true,
+    "google_drive_is_authoritative": true,
+    "github_staging_is_mirror": true,
     "apk_build_owner": "GitHub Actions after CAST ULTIMA"
   }
 }
