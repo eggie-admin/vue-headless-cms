@@ -1,0 +1,24 @@
+{
+  "schema": "kai9000.android-remote-smoke-ref.v1",
+  "canonical_repository": "eggie-admin/hydra-shell-android",
+  "canonical_branch": "main",
+  "canonical_commit": "58f62cdb76a70782ef0b613bc04329e4ec5e32f2",
+  "workflow": ".github/workflows/kai9000-remote-ai-smoke.yml",
+  "runner": "tools/kai9000_remote_smoke.py",
+  "coverage": [
+    "github_remote_runner",
+    "openai_gateway_auth_boundary",
+    "google_ai_edge_gallery_public_source",
+    "kai9000_magic_planner_contract",
+    "ffmpeg_mp4_demux_24fps_png",
+    "apng_preview",
+    "comfyui_http_adapter_contract",
+    "ffmpeg_ai_frame_remux_h264",
+    "audio_preservation",
+    "sha256_artifact_seal"
+  ],
+  "openai_live_inference": "optional_when_secret_present",
+  "edge_gallery_scope": "public_source_contract_not_android_device_inference",
+  "integration_strategy": "reference_not_copy",
+  "secrets_in_repo": false
+}
