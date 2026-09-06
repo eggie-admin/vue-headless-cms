@@ -1,10 +1,11 @@
 {
-  "schema": "kai9000.android-remote-smoke-ref.v1",
+  "schema": "kai9000.android-remote-smoke-ref.v2",
   "canonical_repository": "eggie-admin/hydra-shell-android",
   "canonical_branch": "main",
-  "canonical_commit": "58f62cdb76a70782ef0b613bc04329e4ec5e32f2",
+  "canonical_commit": "5589b886f81c04eec3eeab8ab32b84bd3d10c34c",
   "workflow": ".github/workflows/kai9000-remote-ai-smoke.yml",
   "runner": "tools/kai9000_remote_smoke.py",
+  "hugging_face_doctrine": "lumh-os/kai9000/huggingface.doctrine.json",
   "coverage": [
     "github_remote_runner",
     "openai_gateway_auth_boundary",
@@ -15,10 +16,23 @@
     "comfyui_http_adapter_contract",
     "ffmpeg_ai_frame_remux_h264",
     "audio_preservation",
-    "sha256_artifact_seal"
+    "sha256_artifact_seal",
+    "hugging_face_forge_doctrine"
   ],
   "openai_live_inference": "optional_when_secret_present",
   "edge_gallery_scope": "public_source_contract_not_android_device_inference",
+  "hugging_face": {
+    "role": "forge_and_model_catalog",
+    "runtime_authority": false,
+    "auto_download": false,
+    "auto_execute_remote_code": false,
+    "trust_remote_code_default": false,
+    "revision_pin_required": true,
+    "license_record_required": true,
+    "tokens_in_repo": false,
+    "tokens_in_drive_manifest": false,
+    "local_runtime_preference": "Ollama"
+  },
   "integration_strategy": "reference_not_copy",
   "secrets_in_repo": false
 }
