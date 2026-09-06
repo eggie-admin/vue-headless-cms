@@ -18,6 +18,8 @@ on:
     branches:
       - samsung-sm-x400-backend
       - samsung-sm-x400-build-candidate
+      - samsung-sm-s721u1-kai9000-fdroid-cathedral
+      - ultima/final-apk-jquery-python3
     paths:
       - 'templates/python3-apk/**'
       - 'manifests/oss-vendors.lock.json'
@@ -60,10 +62,27 @@ jobs:
           cache: pip
           cache-dependency-path: templates/python3-apk/requirements-build.txt
 
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Vendor locked jQuery cockpit asset
+        working-directory: ${{ env.TEMPLATE_DIR }}
+        run: |
+          set -euo pipefail
+          npm install --global npm@12.0.2
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run vendor:jquery
+          test -s app/static/jquery.min.js
+          grep -q 'jQuery v3.7.1' app/static/jquery.min.js
+          grep -q 'KAI9000 ULTIMA' app/main.py
+          grep -q '127.0.0.1:8797' app/main.py
+          echo JQUERY_COCKPIT_GREEN
 
       - name: Install APT build essentials
         run: |
@@ -111,8 +130,13 @@ jobs:
           grep -q '^--ndk_api 29$' .p4a
           grep -q '^--bootstrap webview$' .p4a
           grep -q '^--requirements python3,flask$' .p4a
+          grep -q '^--name KAI9000 Ultima$' .p4a
+          grep -q '^--version 1.0.0$' .p4a
           grep -qx 'flask' requirements-app.txt
-          ! grep -RIE '(OPENAI_API_KEY|HF_TOKEN|GOOGLE_APPLICATION_CREDENTIALS|PRIVATE KEY)' app .p4a requirements-*.txt || false
+          test -s app/static/jquery.min.js
+          test -s app/static/cockpit.js
+          ! grep -RIE '(OPENAI_API_KEY|HF_TOKEN|GOOGLE_APPLICATION_CREDENTIALS|PRIVATE KEY)' app .p4a requirements-*.txt
+          echo STATIC_ULTIMA_GREEN
 
       - name: Cross-compile Python3 APK
         working-directory: ${{ env.TEMPLATE_DIR }}
@@ -142,17 +166,21 @@ jobs:
           APK='dist/samsung-sm-x400-python-debug.apk'
           "$AAPT" dump badging "$APK" | tee dist/badging.txt
           grep -q "package: name='art.eggiebagelface.samsungx400.python'" dist/badging.txt
+          grep -q "application-label:'KAI9000 Ultima'" dist/badging.txt
           grep -q "native-code: 'arm64-v8a'" dist/badging.txt
+          echo APK_IDENTITY_GREEN
 
-      - name: Upload APK build-candidate artifact
+      - name: Upload KAI9000 Ultima APK artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: samsung-sm-x400-python3-apk-${{ github.run_id }}
+          name: kai9000-ultima-python3-apk-${{ github.run_id }}
           path: |
             templates/python3-apk/dist/samsung-sm-x400-python-debug.apk
             templates/python3-apk/dist/sha256.txt
             templates/python3-apk/dist/badging.txt
             templates/python3-apk/.p4a
+            templates/python3-apk/package.json
+            templates/python3-apk/package-lock.json
             templates/python3-apk/apt-build-dependencies.txt
             templates/python3-apk/requirements-build.txt
             templates/python3-apk/requirements-app.txt

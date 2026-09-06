@@ -1,0 +1,16 @@
+{
+  "name": "kai9000-ultima-apk-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Locked jQuery vendor step for the KAI9000 Python-for-Android WebView cockpit",
+  "scripts": {
+    "vendor:jquery": "mkdir -p app/static && cp node_modules/jquery/dist/jquery.min.js app/static/jquery.min.js"
+  },
+  "dependencies": {
+    "jquery": "3.7.1"
+  },
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=12 <13"
+  }
+}
