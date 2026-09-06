@@ -23,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify pinned KAI9000 remote-smoke baseline
+      - name: Verify pinned KAI9000 remote-smoke + Hugging Face doctrine baseline
         shell: bash
         run: |
           set -euo pipefail
@@ -32,9 +32,20 @@ jobs:
           COMMIT="$(jq -r .canonical_commit "$MANIFEST")"
           WORKFLOW="$(jq -r .workflow "$MANIFEST")"
           RUNNER="$(jq -r .runner "$MANIFEST")"
+          HF_DOCTRINE="$(jq -r .hugging_face_doctrine "$MANIFEST")"
 
           test "$(jq -r .integration_strategy "$MANIFEST")" = "reference_not_copy"
           test "$(jq -r .secrets_in_repo "$MANIFEST")" = "false"
+          test "$(jq -r .hugging_face.role "$MANIFEST")" = "forge_and_model_catalog"
+          test "$(jq -r .hugging_face.runtime_authority "$MANIFEST")" = "false"
+          test "$(jq -r .hugging_face.auto_download "$MANIFEST")" = "false"
+          test "$(jq -r .hugging_face.auto_execute_remote_code "$MANIFEST")" = "false"
+          test "$(jq -r .hugging_face.trust_remote_code_default "$MANIFEST")" = "false"
+          test "$(jq -r .hugging_face.revision_pin_required "$MANIFEST")" = "true"
+          test "$(jq -r .hugging_face.license_record_required "$MANIFEST")" = "true"
+          test "$(jq -r .hugging_face.tokens_in_repo "$MANIFEST")" = "false"
+          test "$(jq -r .hugging_face.tokens_in_drive_manifest "$MANIFEST")" = "false"
+          test "$(jq -r .hugging_face.local_runtime_preference "$MANIFEST")" = "Ollama"
 
           API="https://api.github.com/repos/${REPO}/commits/${COMMIT}"
           curl --fail --silent --show-error --location \
@@ -46,12 +57,24 @@ jobs:
           RAW="https://raw.githubusercontent.com/${REPO}/${COMMIT}"
           curl --fail --silent --show-error --location "$RAW/$WORKFLOW" > /tmp/kai-workflow.yml
           curl --fail --silent --show-error --location "$RAW/$RUNNER" > /tmp/kai-smoke.py
+          curl --fail --silent --show-error --location "$RAW/$HF_DOCTRINE" > /tmp/huggingface-doctrine.json
 
           grep -q 'KAI9000 Remote AI Media Smoke' /tmp/kai-workflow.yml
           grep -q 'OPENAI_MODELS_URL' /tmp/kai-smoke.py
           grep -q 'EDGE_REPO_URL' /tmp/kai-smoke.py
           grep -q 'check_media_service' /tmp/kai-smoke.py
 
-          echo "KAI9000 REMOTE SMOKE REFERENCE GREEN"
+          test "$(jq -r .role /tmp/huggingface-doctrine.json)" = "forge_and_model_catalog"
+          test "$(jq -r .runtime_authority /tmp/huggingface-doctrine.json)" = "false"
+          test "$(jq -r .auto_download /tmp/huggingface-doctrine.json)" = "false"
+          test "$(jq -r .auto_execute_remote_code /tmp/huggingface-doctrine.json)" = "false"
+          test "$(jq -r .trust_remote_code_default /tmp/huggingface-doctrine.json)" = "false"
+          test "$(jq -r .download.revision_pin_required /tmp/huggingface-doctrine.json)" = "true"
+          test "$(jq -r .download.license_record_required /tmp/huggingface-doctrine.json)" = "true"
+          test "$(jq -r .auth.tokens_in_git /tmp/huggingface-doctrine.json)" = "false"
+          test "$(jq -r .auth.tokens_in_drive_manifest /tmp/huggingface-doctrine.json)" = "false"
+          test "$(jq -r .promotion.operator_approval /tmp/huggingface-doctrine.json)" = "true"
+
+          echo "KAI9000 REMOTE SMOKE + HUGGING FACE DOCTRINE REFERENCE GREEN"
           echo "repo=$REPO"
           echo "commit=$COMMIT"
