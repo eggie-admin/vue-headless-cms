@@ -1,29 +1,31 @@
-# Video Forge Cathedral
+# Luhm OS
 
-Local-first Android/Godot video-control Cathedral with a packaged Vue CMS and a Python 3.14/FastAPI edge runtime.
+**Working title / codename:** KAI 9000
+
+Luhm OS is a local-first Android/Godot AI and media-control environment with a packaged Vue CMS and a Python 3/FastAPI control plane.
+
+## Naming doctrine
+
+- Product / project name: **Luhm OS**
+- Working title / internal codename: **KAI 9000**
+- Desired GitHub repository slug: `luhm-os`
+- Android package ID remains `art.eggiebagelface.videoforge.dev` to preserve update identity during the rename.
+- Existing `KAI9000_*` environment variables, artifact history, and milestone names remain valid compatibility/codename references.
 
 ## Authority boundaries
 
 - GitHub: source, contracts and CI truth
-- FastAPI/Python: runtime and provider authority
+- Python 3 / FastAPI: application control plane
 - Godot: interactive scene truth
-- Vue: CMS/presentation truth
+- Vue/WebView: CMS and presentation truth
+- npm: frontend package/build authority
 - Ollama: local reasoning antenna
-- OpenAI: cloud reasoning
-- Gemini: independent advisory review
-- Google Vertex AI Veo: confirmed video-generation service
-- Google Drive: confirmed durable-vault service
-- Hugging Face: metadata/license-gated model supply
-- Cloudflare Access + Google identity: human edge sentry
+- OpenAI: optional cloud reasoning
+- Google Drive: durable backup/archive
+- F-Droid: Android distribution lane
 
-Models propose. Python authorizes. Cost-bearing cloud requests and durable-vault writes require explicit confirmation.
+Models propose. Python authorizes. Privileged/rooted Android operations remain behind typed, allowlisted broker interfaces.
 
-## Samsung SM-X400 APK build candidate
+## Release lane
 
-The Android Python/WebView packaging lane stages on `samsung-sm-x400-build-candidate` before promotion into `samsung-sm-x400-backend`.
-
-Canonical build inputs and operator instructions live under `templates/python3-apk/`. The full candidate gates, Copilot integration, SDK binary layout and nightly promotion path are documented in `docs/samsung-sm-x400-build-candidate.md`.
-
-PR #3 remains draft until the APK cross-compile, package/ABI checks and artifact upload are green.
-
-See `docs/google-cloud-v8.md`, `docs/edge-sentry-v7.md`, `docs/vue-cms-full-mutation-v6.md`, `docs/samsung-sm-x400-build-candidate.md`, and `manifests/boss-ai.manifest.json` for the current contracts.
+The current pre-Ultima lane is `luhm-os-ultima`. KAI 9000 remains the working title in internal release history while public-facing product branding moves to Luhm OS.

@@ -1,5 +1,5 @@
 {
-  "name": "video-forge-web-workspace",
+  "name": "luhm-os-web-workspace",
   "private": true,
   "version": "0.2.0",
   "packageManager": "npm@12.0.2",
@@ -11,9 +11,9 @@
     "forge-ui"
   ],
   "scripts": {
-    "build": "npm run build --workspace=video-forge-ui",
-    "dev": "npm run dev --workspace=video-forge-ui",
-    "preview": "npm run preview --workspace=video-forge-ui",
+    "build": "npm run build --workspace=luhm-os-ui",
+    "dev": "npm run dev --workspace=luhm-os-ui",
+    "preview": "npm run preview --workspace=luhm-os-ui",
     "format": "prettier --write \"forge-ui/**/*.{html,css,ts,vue,json}\"",
     "format:check": "prettier --check \"forge-ui/**/*.{html,css,ts,vue,json}\"",
     "backend:install": "python3 -m pip install -e ../server",

@@ -1,6 +1,8 @@
 {
   "packageId": "art.eggiebagelface.videoforge.dev",
-  "version": "0.6.0-dev",
-  "pythonVersion": "0.6.0",
-  "versionCode": 6
+  "productName": "Luhm OS",
+  "workingTitle": "KAI 9000",
+  "version": "0.7.0-dev",
+  "pythonVersion": "0.7.0",
+  "versionCode": 7
 }

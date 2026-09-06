@@ -1,36 +1,28 @@
 Categories:
   - Multimedia
   - System
-Name: KAI 9000 Cathedral Dev
-Summary: Local-first Godot AI cockpit for Samsung Android
+Name: Luhm OS
+Summary: Local-first Android AI cockpit, working title KAI 9000
 Description: |-
-  KAI 9000 is a local-first Android AI cockpit built around Godot 4 and a
-  bundled Vue 3 WebView interface.
+  Luhm OS is a local-first Android AI and media-control environment built around
+  Godot 4, a bundled Vue 3 WebView interface, and a Python 3 control plane.
 
-  The cockpit provides CHAT, AGENTS, GALLERY, SYSTEM and CMS surfaces. AI
-  requests are converted into typed decisions before any bounded automation
-  is offered. High-impact actions require explicit operator approval and
-  arbitrary shell execution is not exposed to the model.
+  KAI 9000 remains the project's working title and internal codename. Historical
+  KAI9000 milestones, environment variables, and artifact names remain valid
+  compatibility references during the branding migration.
 
-  The Samsung S24 FE lane is Knox-first and does not require root. Gallery
-  access uses the Android system Photo Picker and only the selected item is
-  copied into app-private cache. The WebView uses an app-owned HTTPS origin,
-  blocks mixed content, rejects oversized bridge messages and routes external
-  navigation to the system browser.
+  The rooted Samsung development lane uses a typed privileged broker. The APK
+  does not expose arbitrary shell execution or a generic su relay. The WebView
+  uses an app-owned HTTPS origin and typed bridge boundaries.
 
-  Local inference uses an optional Ollama-compatible localhost antenna with
-  Qwen 2.5 0.5B as the preferred small model. OpenAI is an optional cloud
-  reasoning lane configured outside the APK. GitHub Copilot remains a
-  developer/build assistant and is not an Android runtime authority.
-
-  This metadata stages a private F-Droid repository build. It is not a claim
-  of acceptance into the official F-Droid repository.
+  This metadata stages a private F-Droid repository build. It is not a claim of
+  acceptance into the official F-Droid repository.
 SourceCode: https://github.com/eggie-admin/vue-headless-cms
-CurrentVersion: 0.6.0-dev
-CurrentVersionCode: 6
+CurrentVersion: 0.7.0-dev
+CurrentVersionCode: 7
 UpdateCheckMode: Static
 MaintainerNotes: |-
-  Private-repository metadata only.
-  Official F-Droid submission remains blocked until the application, bundled
-  assets and reproducible build recipe are reviewed for full F-Droid policy
-  compliance and all redistributed content has explicit FLOSS licensing.
+  Product name: Luhm OS.
+  Working title/codename: KAI 9000.
+  Android package ID is intentionally unchanged to preserve update identity.
+  Update SourceCode after the GitHub repository slug is renamed to luhm-os.
