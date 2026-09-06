@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "hydra.samsung.sm-x400.full-stack",
+  "target": {
+    "manufacturer": "Samsung",
+    "model": "SM-X400",
+    "android": 16,
+    "abi": "arm64-v8a"
+  },
+  "trust": {
+    "preferred": "stock-shizuku",
+    "secureFolder": {
+      "developerOptions": true,
+      "wirelessAdbPreferred": true,
+      "rootAllowed": false,
+      "suiAllowed": false
+    },
+    "rootedLab": {
+      "rootAllowed": true,
+      "suiAllowed": true,
+      "secureFolderTrusted": false
+    }
+  },
+  "packages": {
+    "termux": "com.termux",
+    "termuxWidget": "com.termux.widget",
+    "termuxApi": "com.termux.api",
+    "shizuku": "moe.shizuku.privileged.api",
+    "termuxX11": "com.termux.x11"
+  },
+  "loopbackPorts": {
+    "axs": 8767,
+    "vnc": 5901,
+    "websocket": 6080,
+    "cockpit": 8787,
+    "ollama": 11434
+  },
+  "repositories": {
+    "cathedral": {
+      "repo": "eggie-admin/vue-headless-cms",
+      "branch": "samsung-sm-x400-build-candidate",
+      "role": "build-candidate-and-frontend"
+    },
+    "hydraShell": {
+      "repo": "eggie-admin/hydra-shell-android",
+      "branch": "main",
+      "head": "4cad0eb56afe431446e54f880085a60576f6ffb8",
+      "role": "widget-supervisor-and-local-control-plane"
+    },
+    "shizuku": {
+      "repo": "eggie-admin/Shizuku",
+      "branch": "master",
+      "head": "9a0b7df5fa757f295b07ba6e3c7a3dc3182a20a0",
+      "role": "privilege-broker-source"
+    },
+    "termux": {
+      "repo": "eggie-admin/termux-app",
+      "branch": "hydra-sm-x400",
+      "head": "4033deaea67e28745e632170d660cf3501353b85",
+      "role": "terminal-runtime-and-bootstrap"
+    },
+    "termuxX11": {
+      "repo": "eggie-admin/termux-x11",
+      "branch": "hydra-sm-x400",
+      "head": "14d489a525ecdc6ec572935b31d1eb56312d18e4",
+      "role": "optional-x11-display"
+    },
+    "launcher": {
+      "repo": "eggie-admin/YagniLauncher",
+      "branch": "hydra-sm-x400-kiosk",
+      "head": "5f94e179f053332a96a136a4622382a294975730",
+      "role": "optional-kiosk-front-door"
+    },
+    "fossCatalog": {
+      "repo": "eggie-admin/android-foss",
+      "branch": "master",
+      "head": "b917e48ddf9eccb4c7a85ac36f2247ba700ffdae",
+      "role": "license-and-component-catalog"
+    }
+  },
+  "security": {
+    "loopbackOnly": true,
+    "arbitraryModelShell": false,
+    "typedAllowlistedPrivilegedActions": true,
+    "automaticRoot": false,
+    "secretsInSource": false,
+    "externalCapabilitiesRemainOptional": true
+  }
+}
