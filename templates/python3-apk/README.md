@@ -1,47 +1,112 @@
-# Samsung SM-X400 Python3 APK Forge
+# Samsung SM-X400 Python APK Forge
 
-Reusable, arm64-first Python Android build template for the Samsung SM-X400 project.
+This template builds a Python 3 WebView control APK for the Samsung SM-X400 lane with python-for-android (p4a).
 
-## Doctrine
+## Build contract
 
-- `python-for-android==2026.5.9` is pinned for reproducible packaging.
-- Android API 36 + NDK r28c are the canonical compiler lane.
-- WebView bootstrap keeps the sample small and maps cleanly to the existing kiosk architecture.
-- Python binds only to `127.0.0.1:8765` inside the APK.
-- No provider credentials, API keys, signing secrets, or model weights belong in this template.
-- PyTorch/Lightning/Forge stay in a separate GPU-worker environment, not inside the control APK.
+- Host CI: Ubuntu 24.04
+- Host Python: 3.14
+- Java: Temurin/OpenJDK 17
+- Android target API: 36
+- Android NDK API: 29
+- Android NDK: r28c (`28.2.13676358`)
+- ABI: `arm64-v8a`
+- Bootstrap: `webview`
+- Package: `art.eggiebagelface.samsungx400.python`
+- App port: `8765`
 
-## Local Linux build
+## Dependency files
 
-Install the prerequisites listed by the current python-for-android documentation, then expose your SDK/NDK paths:
+- `apt-build-dependencies.txt`: Ubuntu/host compiler and p4a prerequisites.
+- `requirements-build.txt`: host Python build graph aligned to p4a `2026.5.9`, including its declared build dependencies and the upstream-compatible `Cython==0.29.36` pin.
+- `requirements-app.txt`: Python packages intended to exist inside the Android application. Keep this aligned with `.p4a`.
+- `.p4a`: canonical p4a APK configuration.
+
+Do not add Android runtime packages to `requirements-build.txt`. Do not add host-only build tools to `.p4a`.
+
+For p4a `2026.5.9`, do not casually upgrade Cython to 3.x or wheel beyond p4a's `wheel~=0.43.0` constraint. Those are part of the cross-compile compatibility contract, not ordinary desktop dependency freshness targets.
+
+## Canonical Android SDK paths
+
+Use one SDK root and derive every binary from it:
 
 ```bash
-export ANDROIDSDK="$HOME/Android/Sdk"
+export ANDROIDSDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/Android/Sdk}}"
+export ANDROID_SDK_ROOT="$ANDROIDSDK"
+export ANDROID_HOME="$ANDROIDSDK"
 export ANDROIDNDK="$ANDROIDSDK/ndk/28.2.13676358"
+export ANDROID_NDK_HOME="$ANDROIDNDK"
 export ANDROIDAPI=36
 export NDKAPI=29
 
-cd templates/python3-apk
-python3 -m venv .venv
-source .venv/bin/activate
-make install
-make doctor
-make build
+SDKMANAGER="$ANDROIDSDK/cmdline-tools/latest/bin/sdkmanager"
+ADB="$ANDROIDSDK/platform-tools/adb"
+AAPT="$ANDROIDSDK/build-tools/36.0.0/aapt"
 ```
 
-Output:
+Avoid adding the entire SDK tree to `PATH`. If interactive shell convenience is needed, add only these directories:
+
+```bash
+export PATH="$ANDROIDSDK/cmdline-tools/latest/bin:$ANDROIDSDK/platform-tools:$ANDROIDSDK/build-tools/36.0.0:$PATH"
+```
+
+## Ubuntu host install
+
+```bash
+sudo apt-get update
+mapfile -t APT_DEPS < <(grep -Ev '^\s*(#|$)' apt-build-dependencies.txt)
+sudo apt-get install -y --no-install-recommends "${APT_DEPS[@]}"
+
+python -m pip install --upgrade pip
+python -m pip install --requirement requirements-build.txt
+python -m pip check
+python -c 'import Cython, appdirs, build, colorama, jinja2, packaging, setuptools, sh, toml, wheel; print("PY_BUILD_DEPS_GREEN")'
+command -v meson
+command -v ninja
+p4a --version
+```
+
+## SDK/NDK install
+
+```bash
+SDKMANAGER="$ANDROIDSDK/cmdline-tools/latest/bin/sdkmanager"
+yes | "$SDKMANAGER" --licenses >/dev/null || true
+"$SDKMANAGER" \
+  platform-tools \
+  'platforms;android-36' \
+  'build-tools;36.0.0' \
+  'ndk;28.2.13676358'
+```
+
+## Build
+
+```bash
+export BUILD_MODE=debug
+./build-apk.sh
+```
+
+Expected artifact:
 
 ```text
 dist/samsung-sm-x400-python-debug.apk
-dist/sha256.txt
 ```
 
-## GitHub build
+`build-apk.sh` also writes `dist/sha256.txt` and runs `sanity.py` against the APK.
 
-Workflow: `.github/workflows/python3-apk-template.yml`
+## CI gates
 
-It installs the Linux compiler prerequisites, Java 17, Android API 36, NDK r28c, pinned python-for-android, cross-compiles the APK, validates package/ABI identity, hashes it, and uploads the APK as a GitHub Actions artifact.
+A build is not GREEN until all of these pass:
 
-## Customize
+1. Host APT prerequisites installed.
+2. Host Python build requirements resolve, pass `pip check`, and import successfully.
+3. SDK/NDK binaries resolve from the canonical SDK root.
+4. Static Python and `.p4a` sanity checks pass.
+5. p4a cross-compilation succeeds.
+6. APK package id and `arm64-v8a` payload are verified with `aapt`.
+7. APK, SHA-256, build inputs and badging report upload as workflow artifacts.
 
-Edit `.p4a` for package/name/version/requirements. Keep the arm64-only Samsung baseline unless another ABI is deliberately required.
+## Candidate and nightly lanes
+
+Development changes stage on `samsung-sm-x400-build-candidate`. The regular workflow supports manual and branch/PR builds. The nightly workflow is defined separately and is intended to build the candidate ref without merging it automatically.
+
+GitHub scheduled workflows execute from the repository default branch. Therefore the nightly workflow becomes autonomous only after its workflow definition is present on `main`. Until then it remains a staged validation path.

@@ -1,1 +1,22 @@
+# Host-side Python build toolchain for python-for-android v2026.05.09.
+# Keep these compatible with that exact p4a release.
+# Android runtime dependencies belong in requirements-app.txt.
 python-for-android==2026.5.9
+
+# p4a's own v2026.05.09 Makefile pins this because many recipes remain
+# incompatible with Cython 3.x.
+Cython==0.29.36
+
+# Explicit mirror of p4a v2026.05.09 install_requires so the candidate
+# build contract is visible and pip can validate the complete host graph.
+appdirs
+colorama>=0.3.3
+jinja2
+sh>=2,<3.0; sys_platform != "win32"
+meson
+ninja
+build
+toml
+packaging
+setuptools
+wheel~=0.43.0

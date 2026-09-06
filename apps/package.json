@@ -21,7 +21,18 @@
     "backend:install-smoke": "npm run backend:install && npm run backend:smoke",
     "samsung:smoke": "python3 ../scripts/samsung_benchmark.py --smoke",
     "samsung:bench": "python3 ../scripts/samsung_benchmark.py --full",
-    "samsung:guard:adb": "bash ../scripts/samsung_background_guard_adb.sh"
+    "samsung:guard:adb": "bash ../scripts/samsung_background_guard_adb.sh",
+    "samsung:full:check": "python3 ../scripts/sm_x400_full_samsung_sanity.py",
+    "widget:check": "python3 ../scripts/sm_x400_widget_build.py --check",
+    "widget:build": "python3 ../scripts/sm_x400_widget_build.py --build",
+    "widget:runtime": "python3 ../scripts/sm_x400_widget_build.py --check --runtime-check",
+    "shizuku:check": "python3 ../scripts/sm_x400_shizuku_sanity.py",
+    "shizuku:device": "python3 ../scripts/sm_x400_shizuku_sanity.py --device",
+    "wizard": "python3 ../scripts/sm_x400_build_wizard.py",
+    "candidate:build": "python3 ../scripts/sm_x400_build_wizard.py --candidate",
+    "candidate:build:widget": "python3 ../scripts/sm_x400_build_wizard.py --candidate --with-widget",
+    "candidate:build:shizuku": "python3 ../scripts/sm_x400_build_wizard.py --candidate --with-shizuku",
+    "candidate:build:samsung": "npm run samsung:full:check && python3 ../scripts/sm_x400_build_wizard.py --candidate --with-shizuku"
   },
   "devDependencies": {
     "prettier": "3.6.2"

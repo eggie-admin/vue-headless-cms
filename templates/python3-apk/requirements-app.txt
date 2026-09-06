@@ -1,0 +1,3 @@
+# Android runtime Python packages mirrored by the .p4a --requirements line.
+# python3 is provided by python-for-android and is therefore not a pip entry here.
+flask

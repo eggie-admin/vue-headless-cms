@@ -1,0 +1,19 @@
+name: python3-apk-nightly
+
+on:
+  schedule:
+    - cron: '17 8 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python3-apk-nightly
+  cancel-in-progress: false
+
+jobs:
+  build-candidate:
+    uses: ./.github/workflows/python3-apk-template.yml
+    with:
+      checkout_ref: samsung-sm-x400-build-candidate
