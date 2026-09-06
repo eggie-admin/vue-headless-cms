@@ -1,0 +1,42 @@
+{
+  "schema": "kai9000.drive-source-of-truth.v1",
+  "provider": "Google Drive",
+  "folder": {
+    "id": "17SEblnKbYTUnG7gXeR7vYukE7RcfJO4K",
+    "name": "KAI9000 Samsung Android Dev"
+  },
+  "payload": {
+    "file_id": "1OSTd94Rh2l-2asRCT73exFtjYjn-qRX-",
+    "file_name": "KAI9000_SAMSUNG_AGENT_RSS_MERGE_010.zip",
+    "size_bytes": 26255,
+    "sha256": "a3274eff7d14d338882a27bff140e1a6bce50aa41ebf3d3906cc5fd5d7cebfd7"
+  },
+  "seal": {
+    "file_id": "1EygHwwoLUhDYh9pbaucL7FlKA1D5EN7_",
+    "file_name": "KAI9000_FINAL_APK_MERGE_PREP_SEAL_20260906.zip",
+    "size_bytes": 25953,
+    "sha256": "1bb49f5f8c05913051d5a8cb8b63f420594bb66ce9cbf5cc28b9289bdcb45a4d"
+  },
+  "overlay_files": {
+    "samsung-sm-x400/kai9000_dev/ai/README.md": {
+      "sha256": "b57767bad64f92c7d58f5d11d86d559b27b1252fe4097d9ee776ce83c6bd4bed"
+    },
+    "samsung-sm-x400/kai9000_dev/ai/runtime-contract.json": {
+      "sha256": "b520d26571608fb37feecd2d60f7209eaf517a24a16f5e055a15eaae5f7b621d"
+    },
+    "samsung-sm-x400/kai9000_dev/scripts/sanity-ai-contract.sh": {
+      "sha256": "fe2a70b5aff71a70610a86435839a3f1c92848fd3b553eed1fff1e9922e6b3e7"
+    }
+  },
+  "github_mirror": {
+    "repository": "eggie-admin/vue-headless-cms",
+    "staging_branch": "kai9000-samsung-agent-rss-merge-010",
+    "canonical_apk_branch": "samsung-sm-s721u1-kai9000-fdroid-cathedral",
+    "policy": "Google Drive payload is authoritative for staged Samsung dev merge. GitHub staging is the working mirror. Canonical APK branch stays locked until CAST ULTIMA."
+  },
+  "build_gate": {
+    "locked": true,
+    "unlock_phrase": "CAST ULTIMA",
+    "apk_build_allowed": false
+  }
+}
