@@ -31,7 +31,7 @@ const target = ref<Target>('auto')
 const chatInput = ref('')
 const chatBusy = ref(false)
 const chat = ref<ChatEntry[]>([
-  { role: 'assistant', text: 'KAI 9000 cockpit online. Local-first antenna mode. High-impact actions stop at approval.' },
+  { role: 'assistant', text: 'Luhm OS cockpit online. KAI 9000 working-title antenna mode. High-impact actions stop at approval.' },
 ])
 
 const documents = ref<CmsSummary[]>([])
@@ -222,7 +222,7 @@ function onNativeMessage(event: MessageEvent) {
 
 onMounted(async () => {
   window.addEventListener('message', onNativeMessage)
-  postNative({ type: 'cms.ready', payload: { version: '0.6.0-dev', surface: 'fdroid-ai-cockpit' } })
+  postNative({ type: 'cms.ready', payload: { version: '0.7.0-dev', product: 'Luhm OS', workingTitle: 'KAI 9000', surface: 'fdroid-ai-cockpit' } })
   requestDeviceSnapshot()
   await Promise.all([refreshSystem(), refreshDocuments()])
 })
@@ -232,7 +232,7 @@ onMounted(async () => {
   <main class="cockpit-shell">
     <header class="cockpit-topbar">
       <div class="brand-block">
-        <strong>KAI 9000 · F-DROID CATHEDRAL</strong>
+        <strong>LUHM OS · KAI 9000</strong>
         <span class="status" :data-state="apiState">{{ apiState }}</span>
       </div>
       <div class="top-actions">
@@ -241,14 +241,14 @@ onMounted(async () => {
       </div>
     </header>
 
-    <nav class="cockpit-tabs" aria-label="KAI cockpit">
+    <nav class="cockpit-tabs" aria-label="Luhm OS cockpit">
       <button v-for="name in (['chat','agents','gallery','system','cms'] as Tab[])" :key="name" type="button" :class="{ active: tab === name }" @click="tab = name">{{ name }}</button>
     </nav>
 
     <section v-if="tab === 'chat'" class="pane chat-pane">
       <div class="chat-stream">
         <article v-for="(entry, index) in chat" :key="index" class="chat-bubble" :data-role="entry.role">
-          <small>{{ entry.role === 'assistant' ? `KAI${entry.provider ? ` · ${entry.provider}` : ''}` : 'YOU' }}</small>
+          <small>{{ entry.role === 'assistant' ? `LUHM${entry.provider ? ` · ${entry.provider}` : ''}` : 'YOU' }}</small>
           <p>{{ entry.text }}</p>
           <div v-if="entry.decision" class="decision-card" :data-risk="entry.decision.risk">
             <div><strong>{{ entry.decision.intent }}</strong><span>{{ entry.decision.lane }} · {{ entry.decision.tool }}</span></div>
@@ -263,7 +263,7 @@ onMounted(async () => {
           <option value="local">Qwen local</option>
           <option value="openai">OpenAI</option>
         </select>
-        <textarea v-model="chatInput" rows="2" maxlength="20000" placeholder="Talk to KAI 9000…" @keydown.ctrl.enter.prevent="sendChat" />
+        <textarea v-model="chatInput" rows="2" maxlength="20000" placeholder="Talk to Luhm OS…" @keydown.ctrl.enter.prevent="sendChat" />
         <button type="submit" :disabled="chatBusy || !chatInput.trim()">{{ chatBusy ? 'Thinking…' : 'Send' }}</button>
       </form>
     </section>
@@ -280,7 +280,7 @@ onMounted(async () => {
       <article class="control-card wide">
         <strong>Edge Gallery</strong>
         <span>Android system Photo Picker</span>
-        <small>KAI receives only the item you select. No broad storage permission.</small>
+        <small>Luhm OS receives only the item you select. No broad storage permission.</small>
         <button type="button" @click="chooseGalleryImage">Choose image</button>
         <pre v-if="gallery">{{ JSON.stringify(gallery, null, 2) }}</pre>
       </article>
@@ -288,10 +288,10 @@ onMounted(async () => {
 
     <section v-else-if="tab === 'system'" class="pane cards-pane">
       <article class="control-card"><strong>Runtime</strong><span>{{ apiState }}</span><button type="button" @click="refreshSystem">Refresh</button></article>
-      <article class="control-card"><strong>Security</strong><span>Knox-first · no-root</span><small>Secure Folder compatible device lane. High-impact agent actions require approval.</small></article>
+      <article class="control-card"><strong>Security</strong><span>Rooted S24 dev lane</span><small>Privileged operations stay behind the typed root broker. AI and WebView receive no generic su or shell authority.</small></article>
       <article class="control-card"><strong>Kiosk shell</strong><span>{{ kiosk ? 'immersive ON' : 'immersive OFF' }}</span><button type="button" @click="setKiosk(!kiosk)">Toggle kiosk</button></article>
       <article class="control-card"><strong>Device</strong><button type="button" @click="requestDeviceSnapshot">Snapshot</button><pre>{{ JSON.stringify(device, null, 2) }}</pre></article>
-      <article class="control-card wide"><strong>KAI health</strong><pre>{{ JSON.stringify(health, null, 2) }}</pre></article>
+      <article class="control-card wide"><strong>Luhm OS health</strong><pre>{{ JSON.stringify(health, null, 2) }}</pre></article>
     </section>
 
     <section v-else class="pane cms-pane">
