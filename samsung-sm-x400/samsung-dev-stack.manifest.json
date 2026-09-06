@@ -44,7 +44,7 @@
     "hydraShell": {
       "repo": "eggie-admin/hydra-shell-android",
       "branch": "main",
-      "head": "4cad0eb56afe431446e54f880085a60576f6ffb8",
+      "head": "af8800861a6b0463c4fd1b03aaa429fb88b42e99",
       "role": "widget-supervisor-and-local-control-plane"
     },
     "shizuku": {
@@ -55,26 +55,26 @@
     },
     "termux": {
       "repo": "eggie-admin/termux-app",
-      "branch": "hydra-sm-x400",
-      "head": "4033deaea67e28745e632170d660cf3501353b85",
+      "branch": "master",
+      "head": "aa2d5848e70887545a08c0c48d40c126972d61eb",
       "role": "terminal-runtime-and-bootstrap"
     },
     "termuxX11": {
       "repo": "eggie-admin/termux-x11",
-      "branch": "hydra-sm-x400",
-      "head": "14d489a525ecdc6ec572935b31d1eb56312d18e4",
+      "branch": "master",
+      "head": "2147bd8fea9f865e7106ef3a94ad92652289ade4",
       "role": "optional-x11-display"
     },
     "launcher": {
       "repo": "eggie-admin/YagniLauncher",
-      "branch": "hydra-sm-x400-kiosk",
-      "head": "5f94e179f053332a96a136a4622382a294975730",
+      "branch": "master",
+      "head": "f8bbb4c1bb67e2497e7ad9b0f0274754039b844a",
       "role": "optional-kiosk-front-door"
     },
     "fossCatalog": {
       "repo": "eggie-admin/android-foss",
       "branch": "master",
-      "head": "b917e48ddf9eccb4c7a85ac36f2247ba700ffdae",
+      "head": "22226aa58659036cc8e88b632a41b4a21b3e78c9",
       "role": "license-and-component-catalog"
     }
   },
