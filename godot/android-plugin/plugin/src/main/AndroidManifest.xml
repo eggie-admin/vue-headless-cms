@@ -11,9 +11,14 @@
             android:name="org.godotengine.plugin.v2.${godotPluginName}"
             android:value="${godotPluginPackageName}.CathedralAndroidPlugin" />
 
+        <!--
+          Keep the widget provider private to this APK. The launcher/system can
+          still deliver AppWidget lifecycle broadcasts, while other apps cannot
+          invoke our explicit START/STOP/BENCH control actions directly.
+        -->
         <receiver
             android:name="${godotPluginPackageName}.CathedralWidgetProvider"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

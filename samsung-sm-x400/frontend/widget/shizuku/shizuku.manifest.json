@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "samsung-sm-x400.frontend.widget.shizuku",
+  "optional": true,
+  "role": "privilege-broker",
+  "preferredMode": "wireless-adb",
+  "supportedModes": [
+    "wireless-adb",
+    "adb",
+    "root",
+    "sui"
+  ],
+  "secureFolderTarget": {
+    "trustedMode": "wireless-adb",
+    "developerOptionsRequired": true,
+    "wirelessDebuggingPreferred": true,
+    "rootAllowed": false,
+    "suiAllowed": false
+  },
+  "rootedLabTarget": {
+    "rootAllowed": true,
+    "suiAllowed": true,
+    "secureFolderTrusted": false
+  },
+  "android": {
+    "minimum": 11,
+    "target": 16,
+    "managerPackage": "moe.shizuku.privileged.api"
+  },
+  "dependencyPolicy": {
+    "apkRequired": false,
+    "npmPackages": [],
+    "pythonPackages": [],
+    "externalAndroidApps": [
+      "Shizuku"
+    ],
+    "hiddenApiBypassRequired": false
+  },
+  "capabilities": {
+    "stage1": [
+      "detect-service-state",
+      "request-user-authorization",
+      "read-only-device-diagnostics"
+    ],
+    "stage2RequiresExplicitArchitectureChange": [
+      "direct-shizuku-api-integration",
+      "package-manager-mutations",
+      "cross-user-actions",
+      "root-only-actions"
+    ]
+  },
+  "safety": {
+    "noArbitraryShellFromModels": true,
+    "typedAllowlistedActionsOnly": true,
+    "noSecretStorage": true,
+    "noPublicListener": true
+  }
+}
