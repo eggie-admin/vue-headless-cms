@@ -18,8 +18,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Stage a private F-Droid binary repository input bundle.")
     parser.add_argument("--apk", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--package", default="art.eggiebagelface.videoforge.dev")
-    parser.add_argument("--version-code", default="4")
+    parser.add_argument("--package", default="art.eggiebagelface.kai9000.dev")
+    parser.add_argument("--version-code", default="7")
     args = parser.parse_args()
 
     apk = args.apk.resolve()
