@@ -1,8 +1,8 @@
-; Video Forge Godot cage shell
+; KAI 9000 Godot Android shell
 config_version=5
 
 [application]
-config/name="Video Forge Cathedral"
+config/name="KAI 9000"
 run/main_scene="res://scenes/main.tscn"
 
 [display/window]
