@@ -15,7 +15,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
 
-class CathedralWidgetProvider : AppWidgetProvider() {
+open class CathedralWidgetProvider : AppWidgetProvider() {
     companion object {
         private const val ACTION_START = "art.eggiebagelface.cathedral.widget.START"
         private const val ACTION_STOP = "art.eggiebagelface.cathedral.widget.STOP"
@@ -50,6 +50,14 @@ class CathedralWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
+
+        // The exported AppWidgetProvider must remain reachable by Android for widget
+        // lifecycle broadcasts. Control actions are accepted only by the dedicated
+        // non-exported subclass targeted by our immutable PendingIntents.
+        if (isControlAction(intent.action) && this !is CathedralWidgetActionReceiver) {
+            return
+        }
+
         when (intent.action) {
             ACTION_START -> runControlAndProbe(context, "start", expectedOnline = true)
             ACTION_STOP -> runControlAndProbe(context, "stop", expectedOnline = false)
@@ -63,6 +71,17 @@ class CathedralWidgetProvider : AppWidgetProvider() {
             ACTION_DEV -> openDeveloperOptions(context)
             ACTION_OPEN -> openCathedral(context)
         }
+    }
+
+    private fun isControlAction(action: String?): Boolean = when (action) {
+        ACTION_START,
+        ACTION_STOP,
+        ACTION_SMOKE,
+        ACTION_GUARD,
+        ACTION_BENCH,
+        ACTION_DEV,
+        ACTION_OPEN -> true
+        else -> false
     }
 
     private fun runControlAndProbe(context: Context, command: String, expectedOnline: Boolean) {
@@ -217,7 +236,7 @@ class CathedralWidgetProvider : AppWidgetProvider() {
     }
 
     private fun actionIntent(context: Context, action: String): PendingIntent {
-        val intent = Intent(context, CathedralWidgetProvider::class.java).setAction(action)
+        val intent = Intent(context, CathedralWidgetActionReceiver::class.java).setAction(action)
         return PendingIntent.getBroadcast(
             context,
             action.hashCode(),
