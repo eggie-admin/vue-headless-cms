@@ -5,6 +5,8 @@ import hashlib
 import shutil
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -35,7 +37,7 @@ def main() -> int:
     staged_apk = repo / f"{args.package}_{args.version_code}.apk"
     shutil.copy2(apk, staged_apk)
 
-    source_metadata = Path("fdroid/metadata") / f"{args.package}.yml"
+    source_metadata = ROOT / "fdroid" / "metadata" / f"{args.package}.yml"
     if not source_metadata.is_file():
         raise SystemExit(f"Missing private F-Droid metadata: {source_metadata}")
     shutil.copy2(source_metadata, metadata / source_metadata.name)
