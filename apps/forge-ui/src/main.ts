@@ -32,7 +32,7 @@ class Kai9000Cockpit {
 
   constructor(el: HTMLElement, options: CockpitOptions = {}) {
     this.root = $(el)
-    this.version = options.version ?? '0.7.0-dev'
+    this.version = options.version ?? '1.0.0'
     this.render()
     this.bind()
     this.widgets()
@@ -118,7 +118,7 @@ class Kai9000Cockpit {
 
           <section id="artifacts" class="kai-page">
             <div class="kai-page-head"><div><p class="eyebrow">ARTIFACTS</p><h2>Save Slots</h2></div></div>
-            <div class="kai-save-grid"><article class="kai-card"><b>1 · FINAL MUTATION</b><span>KAI9000_FINAL_MUTATION_GREEN_20260907</span></article><article class="kai-card"><b>2 · OPEN</b><span>Available</span></article><article class="kai-card"><b>3 · OPEN</b><span>Available</span></article></div>
+            <div class="kai-save-grid"><article class="kai-card"><b>1 · FINAL RELEASE</b><span>KAI9000_FINAL_MILESTONE_GREEN_20260908</span></article><article class="kai-card"><b>2 · COMPILE GREEN</b><span>KAI9000_COMPILE_GREEN_20260908</span></article><article class="kai-card"><b>3 · BASELINE</b><span>KAI9000_FINAL_MUTATION_GREEN_20260907</span></article></div>
           </section>
 
           <section id="settings" class="kai-page">
@@ -248,4 +248,4 @@ class Kai9000Cockpit {
   return this.each(function(){ const el=this as HTMLElement; if(!$.data(el,'kai9000Cockpit'))$.data(el,'kai9000Cockpit',new Kai9000Cockpit(el,options)) })
 }) as unknown
 
-$(()=> ($('#app') as any).kai9000Cockpit({version:'0.7.0-dev'}))
+$(()=> ($('#app') as any).kai9000Cockpit({version:'1.0.0'}))
