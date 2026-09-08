@@ -21,5 +21,9 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/cathedral_widget_info" />
         </receiver>
+
+        <receiver
+            android:name="${godotPluginPackageName}.CathedralWidgetActionReceiver"
+            android:exported="false" />
     </application>
 </manifest>
