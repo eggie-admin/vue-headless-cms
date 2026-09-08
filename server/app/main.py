@@ -30,7 +30,8 @@ from app.cms.store import (
 from app.flask_compat import compat_app
 from app.telemetry import emit_event
 
-app = FastAPI(title="Video Forge Control", version="0.6.0")
+APP_VERSION = "1.0.0"
+app = FastAPI(title="KAI 9000 Control", version=APP_VERSION)
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,7 +55,7 @@ class FeedPollRequest(BaseModel):
     execute: bool = False
 
 
-runtime = {"cache_state": "offline", "avatar_state": "idle", "progress": 0.0}
+runtime = {"version": APP_VERSION, "cache_state": "offline", "avatar_state": "idle", "progress": 0.0}
 
 app.mount("/compat", WSGIMiddleware(compat_app))
 app.include_router(cloud_router)
@@ -74,7 +75,7 @@ def require_cms_write_token(provided: str | None) -> None:
 async def startup_event() -> None:
     ensure_database()
     write_token()
-    await emit_event("cathedral_boot", {"surface": "python-control-plane", "version": "0.6.0"})
+    await emit_event("cathedral_boot", {"surface": "python-control-plane", "version": APP_VERSION})
 
 
 @app.get("/api/health")
