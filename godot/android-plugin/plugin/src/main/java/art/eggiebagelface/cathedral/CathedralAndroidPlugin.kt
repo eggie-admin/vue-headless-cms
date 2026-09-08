@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
@@ -136,7 +135,8 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
             .build()
 
         val view = WebView(hostActivity)
-        view.setBackgroundColor(Color.rgb(17, 18, 22))
+        view.setBackgroundColor(Color.rgb(3, 9, 20))
+        view.overScrollMode = View.OVER_SCROLL_NEVER
         view.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -164,6 +164,11 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
                 return true
             }
 
+            override fun onPageFinished(view: WebView, url: String) {
+                super.onPageFinished(view, url)
+                emitSignal(CMS_MESSAGE_SIGNAL.name, "{\"type\":\"cms.page.finished\",\"url\":\"$url\"}")
+            }
+
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
                 view.destroy()
                 cmsView = null
@@ -189,11 +194,9 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
         }
 
         val params = FrameLayout.LayoutParams(
-            (hostActivity.resources.displayMetrics.widthPixels * 0.68f).toInt(),
+            ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
-        ).apply {
-            gravity = Gravity.END
-        }
+        )
 
         hostActivity.addContentView(view, params)
         view.loadUrl(CMS_URL)

@@ -12,7 +12,7 @@ from app.policy import apply_policy
 Target = Literal["auto", "local", "openai"]
 
 LUM_INSTRUCTIONS = """
-You are Lum, the Video Forge control antenna. Return exactly one typed decision.
+You are Lum, the KAI 9000 control antenna. Return exactly one typed decision.
 Do not execute tools, do not invent filesystem paths, and do not emit shell
 commands. Choose lane=local for low-risk local UI/status/media-control intents.
 Choose lane=cloud when the request needs complex reasoning, coding, remote work,

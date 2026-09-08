@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 import sys
 import tomllib
 
@@ -31,7 +32,16 @@ check("pass06-no-node-backend", not (ROOT / "apps/server.js").exists() and not (
 check("pass07-loopback", "--host 127.0.0.1" in termux_run and "0.0.0.0" not in termux_run, "Termux control plane binds loopback")
 check("pass08-telemetry-privacy", "prompt_text" in telemetry["forbidden_properties"] and "filesystem_path" in telemetry["forbidden_properties"], "analytics forbids prompt/path payloads")
 check("pass09-copilot-policy", (ROOT / ".github/copilot-instructions.md").is_file() and (ROOT / "AGENTS.md").is_file(), "repository and agent instructions are present")
-check("pass10-ci-contract", "architecture_sanity.py" in workflow and "node-version: '24'" in workflow, "CI executes the hard architecture gate on Node 24")
+pinned_uses = re.findall(r"uses:\s+[^@\s]+@([0-9a-f]{40})", workflow)
+check(
+    "pass10-ci-contract",
+    "architecture_sanity.py" in workflow
+    and "node-version: '24.18.0'" in workflow
+    and bool(pinned_uses)
+    and "persist-credentials: false" in workflow
+    and "Verify committed npm lock provenance" in workflow,
+    "CI executes the hard architecture gate on pinned Node 24.18, immutable Actions and committed lock provenance",
+)
 
 for item in passes:
     print("PASS", item)
