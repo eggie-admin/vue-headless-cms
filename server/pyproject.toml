@@ -1,6 +1,6 @@
 [project]
 name = "kai9000-control"
-version = "0.7.0"
+version = "1.0.0"
 description = "Single Python control plane for KAI 9000 Android, persistent Vue CMS, boss agents, feeds, compatibility routes and cloud sync"
 requires-python = ">=3.13,<3.15"
 dependencies = [
