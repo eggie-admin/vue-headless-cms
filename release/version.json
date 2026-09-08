@@ -1,6 +1,6 @@
 {
-  "packageId": "art.eggiebagelface.kai9000.dev",
-  "version": "0.7.0-dev",
-  "pythonVersion": "0.7.0",
-  "versionCode": 7
+  "packageId": "art.eggiebagelface.kai9000",
+  "version": "1.0.0",
+  "pythonVersion": "1.0.0",
+  "versionCode": 100
 }
