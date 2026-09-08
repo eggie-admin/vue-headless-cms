@@ -7,9 +7,16 @@
     "node": ">=24.18 <25"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "vendor:bootstrap": "bash -c 'set -euo pipefail; d=node_modules/bootstrap; if [ ! -f \"$d/dist/css/bootstrap.min.css\" ]; then t=$(mktemp); trap \"rm -f $t\" EXIT; curl --fail --location --retry 5 --retry-all-errors -o \"$t\" https://registry.npmjs.org/bootstrap/-/bootstrap-5.3.8.tgz; printf \"%s  %s\\n\" 1cfd52643a9a2c33f0b0d8aa46a8b935c3f44925dc897dacf44f91caa24822a1a8faf25e37900954cf7c097996fd6bb1d274392fb8de59476994211fd047beb6 \"$t\" | sha512sum --check --strict; mkdir -p \"$d\"; tar -xzf \"$t\" --strip-components=1 -C \"$d\"; fi'",
+    "dev": "npm run vendor:bootstrap && vite",
+    "build": "npm run vendor:bootstrap && vite build",
     "preview": "vite preview"
+  },
+  "kai9000Vendor": {
+    "bootstrap": {
+      "version": "5.3.8",
+      "sha512": "1cfd52643a9a2c33f0b0d8aa46a8b935c3f44925dc897dacf44f91caa24822a1a8faf25e37900954cf7c097996fd6bb1d274392fb8de59476994211fd047beb6"
+    }
   },
   "dependencies": {
     "jquery": "4.0.0",
