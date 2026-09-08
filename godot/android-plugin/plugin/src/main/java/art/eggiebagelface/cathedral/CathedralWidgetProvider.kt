@@ -118,7 +118,7 @@ class CathedralWidgetProvider : AppWidgetProvider() {
             }
             true
         } catch (_: SecurityException) {
-            Toast.makeText(context, "Grant Video Forge: Run commands in Termux", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Grant KAI 9000: Run commands in Termux", Toast.LENGTH_LONG).show()
             false
         } catch (_: Exception) {
             Toast.makeText(context, "Termux control unavailable", Toast.LENGTH_SHORT).show()
@@ -171,7 +171,7 @@ class CathedralWidgetProvider : AppWidgetProvider() {
 
         Toast.makeText(
             context,
-            "Add Termux + Video Forge to Never sleeping apps",
+            "Add Termux + KAI 9000 to Never sleeping apps",
             Toast.LENGTH_LONG,
         ).show()
         updateAll(context, "GUARD MENU")
