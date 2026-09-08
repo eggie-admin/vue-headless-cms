@@ -181,14 +181,14 @@ jobs:
           "$GODOT_BIN" --version
           "$GODOT_BIN" --headless --editor --path godot --quit
 
-      - name: Install Gradle template and export signed Android debug APK
+      - name: Install Gradle template and export signed Android release-candidate APK
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p build/android
           "$GODOT_BIN" --headless --path godot \
             --install-android-build-template \
-            --export-debug 'Android Debug' \
+            --export-debug 'Android Release' \
             "$GITHUB_WORKSPACE/$APK_PATH"
           test -s "$APK_PATH"
 
@@ -232,10 +232,10 @@ jobs:
             --package "$PACKAGE_ID" \
             --version-code "$VERSION_CODE"
 
-      - name: Upload Android debug APK and private F-Droid staging bundle
+      - name: Upload Android release-candidate APK and private F-Droid staging bundle
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
-          name: kai9000-donor-android-debug
+          name: kai9000-donor-android-release-candidate
           path: |
             build/android/kai9000-debug.apk
             build/android/sha256.txt
