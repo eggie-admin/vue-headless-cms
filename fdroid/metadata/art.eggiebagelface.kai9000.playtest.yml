@@ -1,0 +1,13 @@
+Categories:
+  - Multimedia
+Name: KAI 9000 Playtest
+Summary: Side-by-side KAI 9000 WebView hotfix playtest
+Description: |-
+  Side-by-side playtest build for validating the KAI 9000 fullscreen jQuery cockpit
+  without replacing the installed canonical package.
+SourceCode: https://github.com/eggie-admin/vue-headless-cms
+CurrentVersion: 1.0.1-playtest
+CurrentVersionCode: 101
+UpdateCheckMode: Static
+MaintainerNotes: |-
+  Playtest package only. This lane intentionally uses a distinct Android package ID.
