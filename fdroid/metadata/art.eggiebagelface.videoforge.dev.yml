@@ -6,7 +6,7 @@ Description: |-
   Development build of the Video Forge Cathedral interface.
 
   This package is intended for private development distribution and Samsung
-  tablet smoke testing. It uses Godot as the fullscreen interactive cage and
+  device smoke testing. It uses Godot as the interactive Android shell and
   communicates with the local FastAPI control plane through typed contracts.
 
   The Vue CMS is bundled into the APK and displayed by the CathedralAndroid
@@ -16,8 +16,8 @@ Description: |-
   This metadata is for a private F-Droid repository lane. It is not a claim of
   acceptance into the official F-Droid repository.
 SourceCode: https://github.com/eggie-admin/vue-headless-cms
-CurrentVersion: 0.6.0-dev
-CurrentVersionCode: 6
+CurrentVersion: 0.6.2-dev
+CurrentVersionCode: 8
 UpdateCheckMode: Static
 MaintainerNotes: |-
   Private-repository metadata only.
