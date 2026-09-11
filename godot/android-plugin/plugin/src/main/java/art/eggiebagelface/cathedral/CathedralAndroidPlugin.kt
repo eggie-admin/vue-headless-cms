@@ -34,6 +34,7 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
         private const val CMS_URL = "$APP_ORIGIN/assets/cms/index.html"
         private const val BRIDGE_NAME = "CathedralBridge"
         private val CMS_MESSAGE_SIGNAL = SignalInfo("cms_message", String::class.java)
+        private val SAFE_EXTERNAL_SCHEMES = setOf("https", "mailto")
     }
 
     private var cmsView: WebView? = null
@@ -123,6 +124,7 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
             .put("vulkan_feature", packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL))
             .put("developer_options_control", "open_only")
             .put("kiosk_control", "immersive_app_shell")
+            .put("external_runtime_required", false)
         return payload.toString()
     }
 
@@ -143,8 +145,12 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
             allowFileAccess = false
             allowContentAccess = false
             setSupportMultipleWindows(false)
-            mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+            javaScriptCanOpenWindowsAutomatically = false
+            databaseEnabled = false
+            setGeolocationEnabled(false)
         }
+        CookieManager.getInstance().setAcceptCookie(false)
         CookieManager.getInstance().setAcceptThirdPartyCookies(view, false)
         WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
 
@@ -158,8 +164,10 @@ class CathedralAndroidPlugin(godot: Godot) : GodotPlugin(godot) {
                 if (uri.scheme == "https" && uri.host == "appassets.androidplatform.net") {
                     return false
                 }
-                runCatching {
-                    hostActivity.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                if (uri.scheme in SAFE_EXTERNAL_SCHEMES) {
+                    runCatching {
+                        hostActivity.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    }
                 }
                 return true
             }

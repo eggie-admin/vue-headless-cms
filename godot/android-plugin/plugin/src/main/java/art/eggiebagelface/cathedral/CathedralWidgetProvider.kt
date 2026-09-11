@@ -6,14 +6,10 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import android.widget.RemoteViews
 import android.widget.Toast
 import androidx.webkit.WebViewCompat
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.concurrent.Executors
 
 class CathedralWidgetProvider : AppWidgetProvider() {
     companion object {
@@ -25,120 +21,43 @@ class CathedralWidgetProvider : AppWidgetProvider() {
         private const val ACTION_DEV = "art.eggiebagelface.cathedral.widget.DEV"
         private const val ACTION_OPEN = "art.eggiebagelface.cathedral.widget.OPEN"
 
-        private const val TERMUX_PACKAGE = "com.termux"
-        private const val TERMUX_RUN_SERVICE = "com.termux.app.RunCommandService"
-        private const val TERMUX_ACTION = "com.termux.RUN_COMMAND"
-        private const val TERMUX_PATH = "com.termux.RUN_COMMAND_PATH"
-        private const val TERMUX_ARGS = "com.termux.RUN_COMMAND_ARGUMENTS"
-        private const val TERMUX_WORKDIR = "com.termux.RUN_COMMAND_WORKDIR"
-        private const val TERMUX_BACKGROUND = "com.termux.RUN_COMMAND_BACKGROUND"
-        private const val TERMUX_HOME = "/data/data/com.termux/files/home"
-        private const val CONTROL_SCRIPT = "$TERMUX_HOME/kai9000/bin/cathedral-control"
-        private const val HEALTH_URL = "http://127.0.0.1:8000/api/health"
-
         private const val SAMSUNG_BACKGROUND_ACTION =
             "com.samsung.android.sm.ACTION_OPEN_CHECKABLE_LISTACTIVITY"
         private const val SAMSUNG_DEVICE_CARE_PACKAGE = "com.samsung.android.lool"
         private const val SAMSUNG_NEVER_SLEEPING = 2
-
-        private val executor = Executors.newSingleThreadExecutor()
     }
 
     override fun onUpdate(context: Context, manager: AppWidgetManager, appWidgetIds: IntArray) {
-        appWidgetIds.forEach { updateWidget(context, manager, it, "READY") }
+        appWidgetIds.forEach { updateWidget(context, manager, it, "APP READY") }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         when (intent.action) {
-            ACTION_START -> runControlAndProbe(context, "start", expectedOnline = true)
-            ACTION_STOP -> runControlAndProbe(context, "stop", expectedOnline = false)
-            ACTION_SMOKE -> probeAsync(context)
+            ACTION_START, ACTION_OPEN -> openCathedral(context)
+            ACTION_STOP -> {
+                Toast.makeText(context, "Android manages LuHm OS app lifecycle", Toast.LENGTH_SHORT).show()
+                updateAll(context, "OS MANAGED")
+            }
+            ACTION_SMOKE -> localSmoke(context)
             ACTION_GUARD -> openBackgroundGuard(context)
             ACTION_BENCH -> {
-                if (invokeTermux(context, "benchmark")) {
-                    updateAll(context, "BENCH RUN")
-                }
+                updateAll(context, "OPEN APP")
+                openCathedral(context)
             }
             ACTION_DEV -> openDeveloperOptions(context)
-            ACTION_OPEN -> openCathedral(context)
         }
     }
 
-    private fun runControlAndProbe(context: Context, command: String, expectedOnline: Boolean) {
-        val pendingResult = goAsync()
-        updateAll(context, if (expectedOnline) "STARTING" else "STOPPING")
-        executor.execute {
-            try {
-                if (!invokeTermux(context, command)) {
-                    updateAll(context, "TERMUX PERM")
-                    return@execute
-                }
-                Thread.sleep(if (expectedOnline) 1400L else 800L)
-                val online = probeHealth()
-                val status = when {
-                    expectedOnline && online -> "GREEN ${webViewLabel(context)}"
-                    !expectedOnline && !online -> "OFF"
-                    expectedOnline -> "START FAIL"
-                    else -> "STILL ON"
-                }
-                updateAll(context, status)
-            } finally {
-                pendingResult.finish()
-            }
+    private fun localSmoke(context: Context) {
+        val launchable = context.packageManager.getLaunchIntentForPackage(context.packageName) != null
+        val webView = WebViewCompat.getCurrentWebViewPackage(context)
+        val status = when {
+            !launchable -> "RED LAUNCHER"
+            webView == null -> "YELLOW WV?"
+            else -> "GREEN ${webViewLabel(context)}"
         }
-    }
-
-    private fun probeAsync(context: Context) {
-        val pendingResult = goAsync()
-        updateAll(context, "SMOKE...")
-        executor.execute {
-            try {
-                val status = if (probeHealth()) "GREEN ${webViewLabel(context)}" else "RED /health"
-                updateAll(context, status)
-            } finally {
-                pendingResult.finish()
-            }
-        }
-    }
-
-    private fun invokeTermux(context: Context, command: String): Boolean {
-        return try {
-            val intent = Intent(TERMUX_ACTION).apply {
-                component = ComponentName(TERMUX_PACKAGE, TERMUX_RUN_SERVICE)
-                putExtra(TERMUX_PATH, CONTROL_SCRIPT)
-                putExtra(TERMUX_ARGS, arrayOf(command))
-                putExtra(TERMUX_WORKDIR, TERMUX_HOME)
-                putExtra(TERMUX_BACKGROUND, true)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
-            }
-            true
-        } catch (_: SecurityException) {
-            Toast.makeText(context, "Grant KAI 9000: Run commands in Termux", Toast.LENGTH_LONG).show()
-            false
-        } catch (_: Exception) {
-            Toast.makeText(context, "Termux control unavailable", Toast.LENGTH_SHORT).show()
-            false
-        }
-    }
-
-    private fun probeHealth(): Boolean {
-        return runCatching {
-            val connection = URL(HEALTH_URL).openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-            connection.connectTimeout = 900
-            connection.readTimeout = 900
-            connection.useCaches = false
-            try {
-                connection.responseCode == HttpURLConnection.HTTP_OK
-            } finally {
-                connection.disconnect()
-            }
-        }.getOrDefault(false)
+        updateAll(context, status)
     }
 
     private fun webViewLabel(context: Context): String {
@@ -171,7 +90,7 @@ class CathedralWidgetProvider : AppWidgetProvider() {
 
         Toast.makeText(
             context,
-            "Add Termux + KAI 9000 to Never sleeping apps",
+            "Add LuHm OS to Never sleeping apps only if you want persistent background work",
             Toast.LENGTH_LONG,
         ).show()
         updateAll(context, "GUARD MENU")
@@ -190,11 +109,13 @@ class CathedralWidgetProvider : AppWidgetProvider() {
     private fun openCathedral(context: Context) {
         val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
         if (launchIntent == null) {
-            Toast.makeText(context, "Cathedral launcher unavailable", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "LuHm OS launcher unavailable", Toast.LENGTH_SHORT).show()
+            updateAll(context, "RED LAUNCHER")
             return
         }
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(launchIntent)
+        updateAll(context, "OPEN")
     }
 
     private fun updateAll(context: Context, status: String) {
