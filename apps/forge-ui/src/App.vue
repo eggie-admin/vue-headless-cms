@@ -20,6 +20,8 @@ const newTitle = ref('Untitled Document')
 const newKind = ref('content')
 const updateUrl = ref(localStorage.getItem('luhmosUpdateUrl') ?? 'https://github.com/eggie-admin/hydra-shell-android/releases/latest/download/luhmos.apk')
 const updateBusy = ref(false)
+const updateButtonLabel = 'Install / Update APK'
+;(window as any).__LUHMOS_UPDATE_CONTRACT__ = updateButtonLabel
 
 const selectedLabel = computed(() => selected.value ? `${selected.value.kind} · r${selected.value.revision}` : 'No document selected')
 
@@ -180,7 +182,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="token-row">
         <input v-model="updateUrl" type="url" autocomplete="off" aria-label="LuHm OS APK update URL" placeholder="HTTPS APK update URL" />
-        <button type="button" :disabled="updateBusy" @click="installOrUpdateApk">{{ updateBusy ? 'Updating…' : 'Install / Update APK' }}</button>
+        <button type="button" :disabled="updateBusy" @click="installOrUpdateApk">{{ updateBusy ? 'Updating…' : updateButtonLabel }}</button>
       </div>
       <div class="token-row">
         <input v-model="writeToken" type="password" autocomplete="off" placeholder="CMS write token" @change="rememberToken" />
