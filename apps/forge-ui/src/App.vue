@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { isPackagedCms, postNative } from './lib/cathedralBridge'
 
 type CmsSummary = { id: string; kind: string; title: string; revision: number; updated_at: string }
 type CmsDocument = CmsSummary & { payload: Record<string, unknown>; created_at: string }
+type NativeEvent = { type?: string; payload?: { message?: string } }
 
 const packagedCms = isPackagedCms()
 const apiBase = packagedCms ? 'http://127.0.0.1:8000' : ''
@@ -17,6 +18,8 @@ const saving = ref(false)
 const newId = ref('')
 const newTitle = ref('Untitled Document')
 const newKind = ref('content')
+const updateUrl = ref(localStorage.getItem('luhmosUpdateUrl') ?? 'https://github.com/eggie-admin/hydra-shell-android/releases/latest/download/luhmos.apk')
+const updateBusy = ref(false)
 
 const selectedLabel = computed(() => selected.value ? `${selected.value.kind} · r${selected.value.revision}` : 'No document selected')
 
@@ -129,9 +132,42 @@ function openGodotWindow() {
   postNative({ type: 'godot.window.open', payload: { panel: 'renderQueue' } })
 }
 
+function installOrUpdateApk() {
+  const url = updateUrl.value.trim()
+  if (!/^https:\/\//i.test(url)) {
+    notice.value = 'Update URL must use HTTPS.'
+    return
+  }
+  localStorage.setItem('luhmosUpdateUrl', url)
+  updateBusy.value = true
+  notice.value = 'Handing LuHm OS update to the native Android verifier…'
+  if (!postNative({ type: 'app.update.install', payload: { url } })) {
+    updateBusy.value = false
+    notice.value = 'Native updater is available only inside the packaged LuHm OS APK.'
+  }
+}
+
+function onNativeMessage(event: MessageEvent) {
+  if (typeof event.data !== 'string') return
+  let message: NativeEvent
+  try {
+    message = JSON.parse(event.data) as NativeEvent
+  } catch {
+    return
+  }
+  if (!message.type?.startsWith('app.update.')) return
+  notice.value = message.payload?.message ?? message.type
+  updateBusy.value = ['app.update.downloading', 'app.update.verified', 'app.update.staged'].includes(message.type)
+}
+
 onMounted(async () => {
-  postNative({ type: 'cms.ready', payload: { version: '0.6.0-dev' } })
+  window.addEventListener('message', onNativeMessage)
+  postNative({ type: 'cms.ready', payload: { version: '1.0.1' } })
   await refreshDocuments()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('message', onNativeMessage)
 })
 </script>
 
@@ -139,8 +175,12 @@ onMounted(async () => {
   <main class="cms-shell">
     <header class="topbar">
       <div>
-        <strong>Video Forge Cathedral CMS</strong>
+        <strong>LuHm OS Cathedral</strong>
         <span class="status" :data-state="apiState">{{ apiState }}</span>
+      </div>
+      <div class="token-row">
+        <input v-model="updateUrl" type="url" autocomplete="off" aria-label="LuHm OS APK update URL" placeholder="HTTPS APK update URL" />
+        <button type="button" :disabled="updateBusy" @click="installOrUpdateApk">{{ updateBusy ? 'Updating…' : 'Install / Update APK' }}</button>
       </div>
       <div class="token-row">
         <input v-model="writeToken" type="password" autocomplete="off" placeholder="CMS write token" @change="rememberToken" />
