@@ -1,0 +1,60 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/copilot-setup-steps.yml'
+      - 'templates/python3-apk/apt-build-dependencies.txt'
+      - 'templates/python3-apk/requirements-build.txt'
+  pull_request:
+    paths:
+      - '.github/workflows/copilot-setup-steps.yml'
+      - 'templates/python3-apk/apt-build-dependencies.txt'
+      - 'templates/python3-apk/requirements-build.txt'
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: templates/python3-apk/requirements-build.txt
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android/Python host build prerequisites
+        run: |
+          set -euo pipefail
+          mapfile -t APT_DEPS < <(grep -Ev '^[[:space:]]*(#|$)' templates/python3-apk/apt-build-dependencies.txt)
+          test "${#APT_DEPS[@]}" -gt 0
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends "${APT_DEPS[@]}"
+          python -m pip install --upgrade pip
+          python -m pip install --requirement templates/python3-apk/requirements-build.txt
+          python -m pip check
+
+      - name: Verify candidate toolchain
+        run: |
+          set -euo pipefail
+          python -c 'import Cython, appdirs, build, colorama, jinja2, packaging, setuptools, sh, toml, wheel; print("COPILOT_PY_BUILD_GREEN")'
+          command -v meson
+          command -v ninja
+          command -v p4a
+          python -m py_compile templates/python3-apk/app/main.py templates/python3-apk/sanity.py
+          SDKROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          test -x "$SDKROOT/cmdline-tools/latest/bin/sdkmanager"
+          echo "COPILOT_SETUP_GREEN"

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
+
+    <queries>
+        <package android:name="com.termux" />
+    </queries>
+
+    <application android:networkSecurityConfig="@xml/cathedral_network_security">
+        <meta-data
+            android:name="org.godotengine.plugin.v2.${godotPluginName}"
+            android:value="${godotPluginPackageName}.CathedralAndroidPlugin" />
+
+        <!--
+          Keep the widget provider private to this APK. The launcher/system can
+          still deliver AppWidget lifecycle broadcasts, while other apps cannot
+          invoke our explicit START/STOP/BENCH control actions directly.
+        -->
+        <receiver
+            android:name="${godotPluginPackageName}.CathedralWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/cathedral_widget_info" />
+        </receiver>
+    </application>
+</manifest>

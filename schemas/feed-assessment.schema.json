@@ -1,0 +1,38 @@
+{
+  "$id": "https://video-forge.local/schemas/feed-assessment.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "impact": {
+      "maxLength": 1600,
+      "type": "string"
+    },
+    "recommended_actions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 8,
+      "type": "array"
+    },
+    "summary": {
+      "maxLength": 1200,
+      "minLength": 1,
+      "type": "string"
+    },
+    "verdict": {
+      "enum": [
+        "ignore",
+        "watch",
+        "action"
+      ]
+    }
+  },
+  "required": [
+    "verdict",
+    "summary",
+    "impact",
+    "recommended_actions"
+  ],
+  "title": "Video Forge Provider Feed Assessment",
+  "type": "object"
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://video-forge.local/schemas/cms-document.schema.json",
+  "title": "Video Forge CMS Document",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "title", "payload", "revision", "created_at", "updated_at"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{0,79}$"},
+    "kind": {"enum": ["ui_manifest", "scene_manifest", "content", "character_bible", "visual_bible", "asset_manifest", "cutscene"]},
+    "title": {"type": "string", "minLength": 1, "maxLength": 160},
+    "payload": {"type": "object"},
+    "revision": {"type": "integer", "minimum": 1},
+    "created_at": {"type": "string"},
+    "updated_at": {"type": "string"}
+  }
+}

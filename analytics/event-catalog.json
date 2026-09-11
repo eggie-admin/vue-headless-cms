@@ -1,0 +1,111 @@
+{
+  "events": {
+    "agent_decision_rejected": [
+      "provider",
+      "tool",
+      "reason_code"
+    ],
+    "agent_routed": [
+      "provider",
+      "lane",
+      "tool",
+      "risk",
+      "requires_confirmation"
+    ],
+    "boss_provider_assessed": [
+      "provider",
+      "ok"
+    ],
+    "boss_provider_failed": [
+      "provider",
+      "ok"
+    ],
+    "cache_state_changed": [
+      "from_state",
+      "to_state",
+      "reason_code"
+    ],
+    "cathedral_boot": [
+      "surface",
+      "version"
+    ],
+    "cloud_drive_archived": [
+      "provider",
+      "ok"
+    ],
+    "cloud_veo_submitted": [
+      "provider",
+      "duration_seconds",
+      "sample_count"
+    ],
+    "cms_document_deleted": [
+      "document_id"
+    ],
+    "cms_document_saved": [
+      "document_id",
+      "kind",
+      "revision"
+    ],
+    "control_plane_health": [
+      "surface",
+      "ok",
+      "latency_ms"
+    ],
+    "cutscene_completed": [
+      "scene_kind",
+      "duration_ms"
+    ],
+    "cutscene_started": [
+      "scene_kind"
+    ],
+    "feed_item_new": [
+      "source_id"
+    ],
+    "feed_polled": [
+      "source_id",
+      "fetched",
+      "new_count",
+      "executed"
+    ],
+    "hf_model_inspected": [
+      "provider",
+      "license_present",
+      "gated"
+    ],
+    "render_completed": [
+      "provider",
+      "job_stage",
+      "duration_ms",
+      "frame_count"
+    ],
+    "render_failed": [
+      "provider",
+      "job_stage",
+      "reason_code"
+    ],
+    "render_started": [
+      "provider",
+      "job_stage",
+      "fps",
+      "width",
+      "height"
+    ]
+  },
+  "forbidden_properties": [
+    "prompt_text",
+    "api_key",
+    "token",
+    "password",
+    "filesystem_path",
+    "filename",
+    "media_title",
+    "email",
+    "real_name",
+    "feed_title",
+    "feed_url",
+    "feed_link",
+    "feed_summary"
+  ],
+  "privacy": "sanitized-backend-only",
+  "version": "1.3.0"
+}

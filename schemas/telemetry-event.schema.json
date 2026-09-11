@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://video-forge.local/schemas/telemetry-event.schema.json",
+  "title": "Video Forge Sanitized Telemetry Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event", "properties"],
+  "properties": {
+    "event": {"type": "string", "minLength": 1, "maxLength": 80},
+    "properties": {
+      "type": "object",
+      "additionalProperties": {"type": ["string", "number", "integer", "boolean"]}
+    }
+  }
+}

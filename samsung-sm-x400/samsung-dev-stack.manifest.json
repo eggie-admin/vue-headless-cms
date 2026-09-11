@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "hydra.samsung.sm-x400.full-stack",
+  "target": {
+    "manufacturer": "Samsung",
+    "model": "SM-X400",
+    "android": 16,
+    "abi": "arm64-v8a"
+  },
+  "trust": {
+    "preferred": "stock-shizuku",
+    "secureFolder": {
+      "developerOptions": true,
+      "wirelessAdbPreferred": true,
+      "rootAllowed": false,
+      "suiAllowed": false
+    },
+    "rootedLab": {
+      "rootAllowed": true,
+      "suiAllowed": true,
+      "secureFolderTrusted": false
+    }
+  },
+  "packages": {
+    "termux": "com.termux",
+    "termuxWidget": "com.termux.widget",
+    "termuxApi": "com.termux.api",
+    "shizuku": "moe.shizuku.privileged.api",
+    "termuxX11": "com.termux.x11"
+  },
+  "loopbackPorts": {
+    "axs": 8767,
+    "vnc": 5901,
+    "websocket": 6080,
+    "cockpit": 8787,
+    "ollama": 11434
+  },
+  "repositories": {
+    "cathedral": {
+      "repo": "eggie-admin/vue-headless-cms",
+      "branch": "samsung-sm-x400-build-candidate",
+      "role": "build-candidate-and-frontend"
+    },
+    "hydraShell": {
+      "repo": "eggie-admin/hydra-shell-android",
+      "branch": "main",
+      "head": "af8800861a6b0463c4fd1b03aaa429fb88b42e99",
+      "role": "widget-supervisor-and-local-control-plane"
+    },
+    "shizuku": {
+      "repo": "eggie-admin/Shizuku",
+      "branch": "master",
+      "head": "9a0b7df5fa757f295b07ba6e3c7a3dc3182a20a0",
+      "role": "privilege-broker-source"
+    },
+    "termux": {
+      "repo": "eggie-admin/termux-app",
+      "branch": "master",
+      "head": "aa2d5848e70887545a08c0c48d40c126972d61eb",
+      "role": "terminal-runtime-and-bootstrap"
+    },
+    "termuxX11": {
+      "repo": "eggie-admin/termux-x11",
+      "branch": "master",
+      "head": "2147bd8fea9f865e7106ef3a94ad92652289ade4",
+      "role": "optional-x11-display"
+    },
+    "launcher": {
+      "repo": "eggie-admin/YagniLauncher",
+      "branch": "master",
+      "head": "f8bbb4c1bb67e2497e7ad9b0f0274754039b844a",
+      "role": "optional-kiosk-front-door"
+    },
+    "fossCatalog": {
+      "repo": "eggie-admin/android-foss",
+      "branch": "master",
+      "head": "22226aa58659036cc8e88b632a41b4a21b3e78c9",
+      "role": "license-and-component-catalog"
+    }
+  },
+  "security": {
+    "loopbackOnly": true,
+    "arbitraryModelShell": false,
+    "typedAllowlistedPrivilegedActions": true,
+    "automaticRoot": false,
+    "secretsInSource": false,
+    "externalCapabilitiesRemainOptional": true
+  }
+}

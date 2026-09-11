@@ -1,0 +1,23 @@
+Categories:
+  - Multimedia
+Name: KAI 9000
+Summary: Local-first Godot and Python AI cockpit for Samsung Android
+Description: |-
+  KAI 9000 is the canonical local-first Android cockpit release.
+
+  Godot provides the fullscreen shell, the bundled jQuery + jQuery UI + Bootstrap
+  cockpit provides the offline WebView interface, and the Python FastAPI control
+  plane remains outside the APK in ordinary Termux. Lum is bundled as the local
+  cockpit avatar and the native bridge remains origin-locked and loopback-first.
+
+  This metadata is for the private KAI binary repository lane. It is not a claim
+  of acceptance into the official F-Droid repository.
+SourceCode: https://github.com/eggie-admin/vue-headless-cms
+CurrentVersion: 1.0.0
+CurrentVersionCode: 100
+UpdateCheckMode: Static
+MaintainerNotes: |-
+  Private-repository metadata only.
+  Release APK signing uses the persistent KAI 9000 signing identity held outside
+  Git and Drive. Official F-Droid submission remains blocked until redistributed
+  assets and the complete build recipe satisfy F-Droid policy requirements.

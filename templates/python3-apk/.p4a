@@ -1,0 +1,13 @@
+--dist_name samsung_sm_x400_python
+--bootstrap webview
+--private app
+--package art.eggiebagelface.samsungx400.python
+--name Samsung SM-X400 Python
+--version 0.1.0
+--requirements python3,flask
+--arch arm64-v8a
+--android_api 36
+--ndk_api 29
+--port 8765
+--wakelock
+--permission INTERNET

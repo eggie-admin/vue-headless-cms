@@ -1,0 +1,46 @@
+{
+  "$id": "https://video-forge.local/schemas/feed-item.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "external_id": {
+      "maxLength": 2000,
+      "type": "string"
+    },
+    "item_id": {
+      "pattern": "^[a-f0-9]{24}$",
+      "type": "string"
+    },
+    "link": {
+      "maxLength": 2000,
+      "type": "string"
+    },
+    "published": {
+      "maxLength": 120,
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^[a-z0-9_.-]+$",
+      "type": "string"
+    },
+    "summary": {
+      "maxLength": 8000,
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 500,
+      "type": "string"
+    }
+  },
+  "required": [
+    "item_id",
+    "source_id",
+    "title",
+    "link",
+    "summary",
+    "published",
+    "external_id"
+  ],
+  "title": "Video Forge Normalized Feed Item",
+  "type": "object"
+}

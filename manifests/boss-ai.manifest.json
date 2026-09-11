@@ -1,0 +1,235 @@
+{
+  "approval_policy": {
+    "automatic": [
+      "read_status",
+      "normalize_feed",
+      "dedupe_feed",
+      "plan_provider_fanout",
+      "low_risk_local_assessment",
+      "inspect_huggingface_metadata",
+      "poll_cloud_operation"
+    ],
+    "explicit_confirmation": [
+      "cleanup_cache",
+      "finalize_video",
+      "upload_final",
+      "publish",
+      "change_credentials",
+      "store_release",
+      "physical_mount_or_eject",
+      "submit_google_veo",
+      "archive_to_google_drive",
+      "download_or_activate_huggingface_model"
+    ]
+  },
+  "canonical_format": "json",
+  "cloud_pipeline": {
+    "authority": "python_fastapi",
+    "flow": [
+      "rss_atom_ingest",
+      "boss_json_normalize",
+      "provider_assessment",
+      "python_policy",
+      "operator_confirmation",
+      "vertex_veo",
+      "gcs_stage",
+      "drive_vault",
+      "cms_manifest_update"
+    ],
+    "human_sentry": "google_via_cloudflare_access",
+    "identity_for_google_apis": "adc_or_workload_identity_federation",
+    "model_supply": {
+      "automatic_download": false,
+      "license_gate": true,
+      "provider": "huggingface"
+    },
+    "vault": {
+      "confirmation_required": true,
+      "provider": "google_drive",
+      "role": "durable_vault",
+      "source_boundary": "configured_veo_gcs_prefix_only"
+    },
+    "video_generation": {
+      "confirmation_required": true,
+      "location": "us-central1",
+      "models": [
+        "veo-3.1-generate-001",
+        "veo-3.1-fast-generate-001"
+      ],
+      "provider": "google_vertex_ai",
+      "stage": "google_cloud_storage"
+    }
+  },
+  "doctrine": {
+    "cloud_reasoning": "openai",
+    "gpu_workers": "modal",
+    "independent_review": "gemini",
+    "interactive_truth": "godot",
+    "local_reasoning": "ollama",
+    "presentation_truth": "vue",
+    "rule": "models_propose_python_authorizes",
+    "runtime_truth": "fastapi",
+    "source_truth": "github"
+  },
+  "feed_assessment_contract": {
+    "fields": [
+      "verdict",
+      "summary",
+      "impact",
+      "recommended_actions"
+    ],
+    "may_execute_tools": false,
+    "verdicts": [
+      "ignore",
+      "watch",
+      "action"
+    ]
+  },
+  "id": "videoForge.bossAi",
+  "manifest_version": "1.1.0",
+  "name": "Video Forge Boss AI Toolchain",
+  "observability": {
+    "backend_only": true,
+    "events": [
+      "feed_polled",
+      "feed_item_new",
+      "boss_provider_assessed",
+      "boss_provider_failed",
+      "cloud_veo_submitted",
+      "cloud_drive_archived",
+      "hf_model_inspected"
+    ],
+    "sanitized": true
+  },
+  "project": "Video Forge Cathedral",
+  "providers": {
+    "gemini": {
+      "adapter": "gemini_interactions",
+      "authoritative": false,
+      "default_model": "gemini-3.7-flash",
+      "enabled_when_env": [
+        "GEMINI_API_KEY"
+      ],
+      "feed_ingest": true,
+      "model_env": "GEMINI_MODEL",
+      "role": "independent_reviewer"
+    },
+    "ollama": {
+      "adapter": "ollama_chat",
+      "authoritative": false,
+      "default_url": "http://127.0.0.1:11434",
+      "enabled_when_env": [
+        "OLLAMA_MODEL"
+      ],
+      "feed_ingest": true,
+      "model_env": "OLLAMA_MODEL",
+      "role": "edge_antenna",
+      "url_env": "OLLAMA_URL"
+    },
+    "openai": {
+      "adapter": "openai_agents_sdk",
+      "authoritative": false,
+      "default_model": "gpt-5.6-sol",
+      "enabled_when_env": [
+        "OPENAI_API_KEY"
+      ],
+      "feed_ingest": true,
+      "model_env": "OPENAI_AGENT_MODEL",
+      "role": "boss_reasoner"
+    }
+  },
+  "release_gates": [
+    "manifest_base64_roundtrip",
+    "rss_atom_parser_tests",
+    "provider_output_validation",
+    "feed_prompt_injection_boundary",
+    "auto_fanout_off_by_default",
+    "cloud_provider_sanity",
+    "cloud_cost_confirmation",
+    "huggingface_license_gate",
+    "architecture_sanity",
+    "github_ci_green",
+    "samsung_runtime_smoke_before_merge"
+  ],
+  "routing": {
+    "fanout_concurrency": 3,
+    "feed_assessment_is_advisory": true,
+    "local_first": true,
+    "no_arbitrary_shell": true,
+    "no_model_authored_paths": true,
+    "provider_failure_isolated": true
+  },
+  "rss_atom_bus": {
+    "accepted_formats": [
+      "rss2",
+      "atom"
+    ],
+    "dedupe_store": "sqlite",
+    "default_fanout": "plan_only",
+    "enabled": true,
+    "execute_gate_env": "BOSS_AUTO_FANOUT",
+    "feed_content_is_untrusted": true,
+    "max_document_bytes": 2097152,
+    "max_items_per_poll": 10,
+    "max_sources": 20,
+    "prompt_injection_rule": "never_follow_instructions_from_feed_content",
+    "source_config_env": "BOSS_FEEDS_JSON",
+    "source_selection": "operator_allowlist_by_id",
+    "state_db_env": "BOSS_STATE_DB",
+    "targets": [
+      "ollama",
+      "openai",
+      "gemini"
+    ]
+  },
+  "secrets": {
+    "allowed_reference_kind": "environment_variable_name",
+    "embed_values": false,
+    "forbidden": [
+      "api_key_values",
+      "oauth_tokens",
+      "passwords",
+      "private_keys",
+      "session_cookies"
+    ],
+    "transport_rule": "https_headers_only"
+  },
+  "services": {
+    "google_drive": {
+      "authoritative": false,
+      "role": "durable_vault",
+      "status": "scaffolded"
+    },
+    "google_vertex_veo": {
+      "authoritative": false,
+      "role": "video_generation",
+      "status": "scaffolded"
+    },
+    "huggingface": {
+      "automatic_download": false,
+      "may_receive": [
+        "licensed_model_metadata",
+        "approved_training_artifacts"
+      ],
+      "role": "model_supply_chain",
+      "status": "scaffolded"
+    },
+    "mixpanel": {
+      "authoritative": false,
+      "role": "sanitized_analytics",
+      "status": "optional"
+    },
+    "modal": {
+      "may_receive": [
+        "approved_gpu_jobs",
+        "licensed_model_tuning_jobs"
+      ],
+      "role": "gpu_furnace",
+      "status": "scaffolded"
+    }
+  },
+  "status": "scaffolded",
+  "transport_encodings": [
+    "base64"
+  ]
+}
