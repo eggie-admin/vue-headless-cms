@@ -1,0 +1,24 @@
+Categories:
+  - Multimedia
+Name: LuHm OS
+Summary: Local-first Godot and Python control cockpit for Samsung development
+Description: |-
+  Testing build of the LuHm OS Android cockpit.
+
+  This package is intended for private development distribution and Samsung
+  smoke testing. It uses Godot as the fullscreen interactive shell and
+  communicates with the local Python control plane through typed contracts.
+
+  The packaged cockpit assets are bundled into the APK and displayed by the
+  CathedralAndroid Godot Android v2 WebView plugin. Durable control-plane state
+  remains outside the APK in the local Python service boundary.
+
+  This metadata is for a private F-Droid repository lane. It is not a claim of
+  acceptance into the official F-Droid repository.
+SourceCode: https://github.com/eggie-admin/vue-headless-cms
+CurrentVersion: 1.0.0
+CurrentVersionCode: 100
+UpdateCheckMode: Static
+MaintainerNotes: |-
+  Private-repository metadata only.
+  Official F-Droid submission remains a separate policy/reproducibility gate.
