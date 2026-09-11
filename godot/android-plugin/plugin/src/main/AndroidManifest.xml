@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <queries>
         <package android:name="com.termux" />
@@ -26,5 +27,10 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/cathedral_widget_info" />
         </receiver>
+
+        <!-- Explicit PendingIntent target for PackageInstaller status callbacks. -->
+        <receiver
+            android:name="${godotPluginPackageName}.CathedralUpdateReceiver"
+            android:exported="false" />
     </application>
 </manifest>
