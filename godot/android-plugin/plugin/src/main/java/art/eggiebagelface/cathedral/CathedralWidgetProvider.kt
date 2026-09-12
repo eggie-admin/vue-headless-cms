@@ -22,7 +22,7 @@ class CathedralWidgetProvider : AppWidgetProvider() {
         private const val ACTION_SMOKE = "art.eggiebagelface.cathedral.widget.SMOKE"
         private const val ACTION_GUARD = "art.eggiebagelface.cathedral.widget.GUARD"
         private const val ACTION_BENCH = "art.eggiebagelface.cathedral.widget.BENCH"
-        private const val ACTION_DEV = "art.eggiebagelface.cathedral.widget.DEV"
+        private const val ACTION_CHAT = "art.eggiebagelface.cathedral.widget.CHAT"
         private const val ACTION_OPEN = "art.eggiebagelface.cathedral.widget.OPEN"
 
         private const val TERMUX_PACKAGE = "com.termux"
@@ -33,8 +33,10 @@ class CathedralWidgetProvider : AppWidgetProvider() {
         private const val TERMUX_WORKDIR = "com.termux.RUN_COMMAND_WORKDIR"
         private const val TERMUX_BACKGROUND = "com.termux.RUN_COMMAND_BACKGROUND"
         private const val TERMUX_HOME = "/data/data/com.termux/files/home"
+        private const val TERMUX_OLLAMA = "/data/data/com.termux/files/usr/bin/ollama"
         private const val CONTROL_SCRIPT = "$TERMUX_HOME/kai9000/bin/cathedral-control"
         private const val HEALTH_URL = "http://127.0.0.1:8000/api/health"
+        private const val OLLAMA_MODEL = "qwen2.5:3b"
 
         private const val SAMSUNG_BACKGROUND_ACTION =
             "com.samsung.android.sm.ACTION_OPEN_CHECKABLE_LISTACTIVITY"
@@ -60,7 +62,7 @@ class CathedralWidgetProvider : AppWidgetProvider() {
                     updateAll(context, "BENCH RUN")
                 }
             }
-            ACTION_DEV -> openDeveloperOptions(context)
+            ACTION_CHAT -> openOllamaChat(context)
             ACTION_OPEN -> openCathedral(context)
         }
     }
@@ -111,11 +113,7 @@ class CathedralWidgetProvider : AppWidgetProvider() {
                 putExtra(TERMUX_WORKDIR, TERMUX_HOME)
                 putExtra(TERMUX_BACKGROUND, true)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
-            }
+            startTermuxService(context, intent)
             true
         } catch (_: SecurityException) {
             Toast.makeText(context, "Grant KAI 9000: Run commands in Termux", Toast.LENGTH_LONG).show()
@@ -123,6 +121,34 @@ class CathedralWidgetProvider : AppWidgetProvider() {
         } catch (_: Exception) {
             Toast.makeText(context, "Termux control unavailable", Toast.LENGTH_SHORT).show()
             false
+        }
+    }
+
+    private fun openOllamaChat(context: Context) {
+        try {
+            val intent = Intent(TERMUX_ACTION).apply {
+                component = ComponentName(TERMUX_PACKAGE, TERMUX_RUN_SERVICE)
+                putExtra(TERMUX_PATH, TERMUX_OLLAMA)
+                putExtra(TERMUX_ARGS, arrayOf("run", OLLAMA_MODEL))
+                putExtra(TERMUX_WORKDIR, TERMUX_HOME)
+                putExtra(TERMUX_BACKGROUND, false)
+            }
+            startTermuxService(context, intent)
+            updateAll(context, "CHAT ${OLLAMA_MODEL.substringBefore(':')}")
+        } catch (_: SecurityException) {
+            Toast.makeText(context, "Grant KAI 9000: Run commands in Termux", Toast.LENGTH_LONG).show()
+            updateAll(context, "TERMUX PERM")
+        } catch (_: Exception) {
+            Toast.makeText(context, "KAI 9000 chat unavailable", Toast.LENGTH_SHORT).show()
+            updateAll(context, "CHAT FAIL")
+        }
+    }
+
+    private fun startTermuxService(context: Context, intent: Intent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+        } else {
+            context.startService(intent)
         }
     }
 
@@ -177,20 +203,10 @@ class CathedralWidgetProvider : AppWidgetProvider() {
         updateAll(context, "GUARD MENU")
     }
 
-    private fun openDeveloperOptions(context: Context) {
-        val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        runCatching { context.startActivity(intent) }
-            .onFailure {
-                Toast.makeText(context, "Developer Options unavailable", Toast.LENGTH_SHORT).show()
-            }
-    }
-
     private fun openCathedral(context: Context) {
         val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
         if (launchIntent == null) {
-            Toast.makeText(context, "Cathedral launcher unavailable", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "LuHm OS launcher unavailable", Toast.LENGTH_SHORT).show()
             return
         }
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -212,7 +228,7 @@ class CathedralWidgetProvider : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.widget_smoke, actionIntent(context, ACTION_SMOKE))
         views.setOnClickPendingIntent(R.id.widget_guard, actionIntent(context, ACTION_GUARD))
         views.setOnClickPendingIntent(R.id.widget_bench, actionIntent(context, ACTION_BENCH))
-        views.setOnClickPendingIntent(R.id.widget_dev, actionIntent(context, ACTION_DEV))
+        views.setOnClickPendingIntent(R.id.widget_chat, actionIntent(context, ACTION_CHAT))
         manager.updateAppWidget(widgetId, views)
     }
 
