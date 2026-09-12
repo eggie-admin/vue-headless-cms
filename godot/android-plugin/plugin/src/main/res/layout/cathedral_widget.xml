@@ -17,7 +17,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="VIDEO FORGE"
+            android:text="KAI 9000"
             android:textColor="#FFFFFFFF"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -56,11 +56,11 @@
             android:textSize="11sp" />
 
         <Button
-            android:id="@+id/widget_smoke"
+            android:id="@+id/widget_chat"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="SMOKE"
+            android:text="CHAT"
             android:textSize="10sp" />
     </LinearLayout>
 
@@ -70,6 +70,14 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/widget_smoke"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SMOKE"
+            android:textSize="10sp" />
 
         <Button
             android:id="@+id/widget_guard"
@@ -85,14 +93,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="BENCH"
-            android:textSize="10sp" />
-
-        <Button
-            android:id="@+id/widget_dev"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="DEV"
             android:textSize="10sp" />
     </LinearLayout>
 </LinearLayout>
