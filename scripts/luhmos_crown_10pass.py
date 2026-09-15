@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,17 +55,34 @@ def pass_webview_boundary() -> None:
     require('<base-config cleartextTrafficPermitted="false"' in network, "global cleartext denial missing")
 
 
-def pass_component_exposure() -> None:
-    manifest = text("godot/android-plugin/plugin/src/main/AndroidManifest.xml")
-    require('android:exported="false"' in manifest, "private widget receiver must remain non-exported")
-    require("CathedralWidgetProvider" in manifest, "expected app-owned widget provider missing")
+def pass_arcade_capability_isolation() -> None:
+    host = text("apps/forge-ui/src/cathedralArcade.ts")
+    arcade = text("apps/forge-ui/public/arcade/index.html")
+    bootstrap = text("apps/forge-ui/src/bootstrap.ts")
+    manifest = data("release/cathedral-arcade.json")
+
+    require('sandbox="allow-scripts"' in host, "Arcade iframe must grant scripts only")
+    require("allow-same-origin" not in host, "Arcade must keep an opaque origin")
+    require("event.source !== frame.contentWindow" in host, "save adapter must source-lock child messages")
+    require("sanitizeState(record.state)" in host, "parent must schema-limit Arcade save writes")
+    require("cathedralBridge" not in host and "postNative" not in host, "Arcade host gained native bridge access")
+    require("connect-src 'none'" in arcade, "Arcade CSP must deny network connections")
+    require("CathedralBridge" not in arcade and "sessionStorage" not in arcade, "Arcade child references privileged cockpit capability")
+    require("Cathedral Arcade unavailable; privileged cockpit remains online." in bootstrap, "optional Arcade failure must fail open")
+    require(manifest["runtime_isolation"]["allow_same_origin"] is False, "Arcade isolation manifest drift")
+    require(manifest["runtime_isolation"]["native_bridge_visible"] is False, "Arcade bridge boundary drift")
 
 
 def pass_provenance() -> None:
     workflow = text(".github/workflows/android-apk.yml")
+    arcade = data("release/cathedral-arcade.json")
     for needle in ("GODOT_EDITOR_SHA256", "GODOT_TEMPLATES_SHA256", "NPM_LOCK_SHA256", "sha256sum --check --strict"):
         require(needle in workflow, f"build provenance gate missing: {needle}")
     require("persist-credentials: false" in workflow, "checkout credentials must not persist")
+    for source in arcade["creative_sources"]:
+        commit = str(source.get("commit", ""))
+        require(bool(re.fullmatch(r"[0-9a-f]{40}", commit)), f"mutable/unpinned Arcade provenance: {source.get('repository')}")
+        require("branch" not in source, f"Arcade provenance must not rely on mutable branch: {source.get('repository')}")
 
 
 def pass_signing_and_artifacts() -> None:
@@ -96,11 +114,13 @@ def pass_play_first_keyless_cloud() -> None:
 def pass_play_bundle_and_wizard() -> None:
     export = text("godot/export_presets.cfg")
     wizard = text("apps/forge-ui/public/install/index.html")
+    crown_ui = text("apps/forge-ui/src/crownMode.ts")
     require('name="Android Play Internal"' in export, "Play AAB preset missing")
     require("gradle_build/export_format=1" in export, "Play preset must export AAB")
     require("play.google.com/store/apps/details?id=art.eggiebagelface.luhmos" in wizard, "Play install action missing")
     require("hydra-shell-android/releases/latest" in wizard, "truthful signed APK fallback missing")
     require("Android may ask for confirmation" in wizard, "fallback confirmation disclosure missing")
+    require('href="./install/"' in crown_ui, "Crown Gate must use packaged-appassets-relative install path")
 
 
 def pass_hands_off_ci_contract() -> None:
@@ -110,6 +130,7 @@ def pass_hands_off_ci_contract() -> None:
     require("python scripts/luhmos_crown_10pass.py" in workflow, "Crown workflow does not run 10-pass audit")
     require("python scripts/cathedral_full_sanity.py" in workflow, "Cathedral sanity missing from Crown workflow")
     require("npm run build --workspace=video-forge-ui" in workflow, "cockpit build missing from Crown workflow")
+    require("forge-ui/dist/arcade/index.html" in workflow, "isolated Arcade artifact is not asserted by CI")
     require("CI evidence outranks agent confidence" in copilot, "Copilot evidence doctrine missing")
     require("LUM HOLDS THE CROWN" in crown_ui, "Crown UX missing")
 
@@ -118,8 +139,8 @@ PASSES = [
     ("01 identity", pass_identity),
     ("02 stock-unrooted boundary", pass_stock_unrooted),
     ("03 WebView/network boundary", pass_webview_boundary),
-    ("04 component exposure", pass_component_exposure),
-    ("05 build provenance", pass_provenance),
+    ("04 Arcade capability isolation", pass_arcade_capability_isolation),
+    ("05 immutable provenance", pass_provenance),
     ("06 signer/artifact evidence", pass_signing_and_artifacts),
     ("07 Lum crown authority", pass_lum_crown_authority),
     ("08 Play-first keyless cloud", pass_play_first_keyless_cloud),
