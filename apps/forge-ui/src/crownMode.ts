@@ -17,7 +17,7 @@ export function mountCrownMode(): void {
     <div class="lum-crown-pills" aria-label="Crown Gate invariants">
       <span>STOCK</span><span>UNROOTED</span><span>PLAY-FIRST</span><span>10-PASS</span>
     </div>
-    <a class="lum-crown-install" href="/install/" target="_blank" rel="noopener">CROWN GATE ↗</a>
+    <a class="lum-crown-install" href="./install/" target="_blank" rel="noopener">CROWN GATE ↗</a>
   `
 
   const topbar = shell.querySelector('.kai-topbar')
