@@ -1,6 +1,6 @@
 {
-  "profile_version": "2.0.0",
-  "name": "LuHm OS Samsung Universal Stock",
+  "profile_version": "2.1.0",
+  "name": "LuHm OS Samsung Universal Stock Crown",
   "application": {
     "package_id": "art.eggiebagelface.luhmos",
     "abi": "arm64-v8a",
@@ -75,12 +75,25 @@
     "physical_device_gate": true
   },
   "distribution": {
-    "bootstrap": "https://github.com/eggie-admin/hydra-shell-android/releases/latest",
-    "android_user_confirmation_required": true,
+    "primary": {
+      "channel": "google_play_internal",
+      "artifact": "aab",
+      "unknown_sources_required": false,
+      "tester_enrollment_required_once": true,
+      "play_store_handles_updates": true
+    },
+    "fallback": {
+      "bootstrap": "https://github.com/eggie-admin/hydra-shell-android/releases/latest",
+      "android_user_confirmation_required": true,
+      "unknown_sources_may_be_required": true
+    },
     "request_install_packages_permission": false,
     "same_signer_update_required": true,
-    "google_play_testing_allowed": true,
     "fdroid_optional_after_promotion": true
+  },
+  "cloud_release_auth": {
+    "google": "github_oidc_workload_identity_federation",
+    "long_lived_service_account_json": false
   },
   "legacy_termux_lane": {
     "status": "historical_development_only",
