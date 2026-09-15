@@ -1,5 +1,5 @@
 {
-  "schema": "luhmos.cathedral-arcade.v1",
+  "schema": "luhmos.cathedral-arcade.v2",
   "date": "2026-09-15",
   "status": "playable_candidate_not_promoted",
   "name": "LuHm OS Cathedral Arcade",
@@ -15,8 +15,8 @@
     },
     {
       "repository": "eggie-admin/hydra-shell-android",
-      "branch": "luhmos-main",
-      "relationship": "canonical LuHm OS doctrine",
+      "commit": "22a61d9d3d182eb706796be73f95f57b1010f5ca",
+      "relationship": "pinned canonical LuHm OS doctrine snapshot",
       "adapted_systems": ["Lum magic spell names", "human approval locks", "Samsung standalone boundaries"]
     }
   ],
@@ -26,11 +26,21 @@
     "Lum trust/spark/respect/jealousy bond scene",
     "D20 oracle",
     "zero-money Static Shard relic pulls",
-    "localStorage save slot",
+    "parent-owned schema-limited local save slot",
     "procedural WebAudio victory fanfare",
     "animated ritual curtain",
     "LuHm spell deck simulation"
   ],
+  "runtime_isolation": {
+    "surface": "sandboxed_iframe",
+    "sandbox_tokens": ["allow-scripts"],
+    "allow_same_origin": false,
+    "network_connect_src": "none",
+    "native_bridge_visible": false,
+    "session_storage_visible": false,
+    "parent_capabilities": ["validated_arcade_save_load_reset_only"],
+    "optional_failure_can_replace_cockpit": false
+  },
   "authority_boundary": {
     "github_write": false,
     "shell_execution": false,
