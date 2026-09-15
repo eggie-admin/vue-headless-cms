@@ -93,7 +93,7 @@ check({"SM-S721*", "SM-X400", "SM-G770*"}.issubset({d["model_pattern"] for d in 
 check(package.get("devDependencies", {}).get("prettier") == "3.6.2", "Prettier must remain pinned")
 check("samsung_edge_sanity.py" in forge_ci, "Forge CI Samsung gate missing")
 check("samsung_edge_sanity.py" in android_ci, "Android CI Samsung gate missing")
-check("com.termux.permission.RUN_COMMAND" not in android_ci, "Android CI still requires obsolete Termux permission")
-check("REQUEST_INSTALL_PACKAGES" not in android_ci, "Android CI must not require broad install authority")
+check("Standalone Samsung APK must not request Termux RUN_COMMAND" in android_ci, "Android CI must reject obsolete Termux permission")
+check("Bootstrap install portal must not request package-installer authority" in android_ci, "Android CI must reject broad install authority")
 
 print(f"SAMSUNG_EDGE_SANITY_GREEN passes={passes}")
