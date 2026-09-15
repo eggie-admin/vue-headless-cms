@@ -1,0 +1,58 @@
+{
+  "schema": "luhmos.crown-install.v1",
+  "date": "2026-09-15",
+  "status": "candidate",
+  "package_id": "art.eggiebagelface.luhmos",
+  "authority": {
+    "visible_operational_crown": "Lum",
+    "human_final_authority": "Professor",
+    "ci_evidence_authoritative": true,
+    "destructive_promotion_requires_human": true
+  },
+  "root_of_trust": {
+    "device_root_required": false,
+    "root_install": false,
+    "pillars": [
+      "persistent release signer continuity",
+      "Git commit provenance",
+      "CI artifact identity and SHA-256 evidence",
+      "Google Play delivery when configured"
+    ]
+  },
+  "distribution": {
+    "primary": {
+      "channel": "google_play_internal",
+      "experience": "tester enrolls once, then installs and updates through Google Play",
+      "unknown_sources_required": false,
+      "custom_package_installer": false,
+      "silent_install_claim": false,
+      "aab_required": true
+    },
+    "fallback": {
+      "channel": "trusted_https_github_release_handoff",
+      "android_user_confirmation_required": true,
+      "unknown_sources_may_be_required": true,
+      "silent_install": false
+    }
+  },
+  "google_cloud": {
+    "github_auth": "oidc_workload_identity_federation",
+    "long_lived_service_account_json": false,
+    "play_console_setup_is_external_prerequisite": true,
+    "automatic_publish_allowed_only_after_preflight_green": true
+  },
+  "install_wizard": {
+    "name": "Crown Gate",
+    "primary_action": "Open Google Play",
+    "fallback_action": "Signed APK fallback",
+    "end_user_shell_commands": false,
+    "end_user_termux_dependency": false,
+    "end_user_root_dependency": false
+  },
+  "promotion": {
+    "fail_closed": true,
+    "required_gate": "LUM_HOLDS_THE_CROWN_GREEN",
+    "automatic_merge": false,
+    "automatic_production_rollout": false
+  }
+}
