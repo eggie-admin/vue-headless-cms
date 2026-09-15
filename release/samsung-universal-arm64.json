@@ -65,6 +65,7 @@
       "android_user_confirmation_required": true,
       "unknown_sources_may_be_required": true
     },
+    "android_user_confirmation_required": true,
     "request_install_packages_permission": false,
     "silent_install": false,
     "root_install": false,
