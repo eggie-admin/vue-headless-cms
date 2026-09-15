@@ -1,0 +1,54 @@
+{
+  "schema": "luhmos.cathedral-arcade.v1",
+  "date": "2026-09-15",
+  "status": "playable_candidate_not_promoted",
+  "name": "LuHm OS Cathedral Arcade",
+  "package_id": "art.eggiebagelface.luhmos",
+  "integration_branch": "luhmos/cathedral-arcade-20260915",
+  "creative_sources": [
+    {
+      "repository": "eggie-admin/3d-chat-interface",
+      "commit": "457c31f2bcb040aba3d6a0b36a25cf1a63587359",
+      "license": "MIT",
+      "relationship": "LuHm/KAI-owned early JRPG prototype",
+      "adapted_systems": ["cathedral world", "battle commands", "bond stats", "camp choices", "original procedural victory-fanfare concept"]
+    },
+    {
+      "repository": "eggie-admin/hydra-shell-android",
+      "branch": "luhmos-main",
+      "relationship": "canonical LuHm OS doctrine",
+      "adapted_systems": ["Lum magic spell names", "human approval locks", "Samsung standalone boundaries"]
+    }
+  ],
+  "features": [
+    "five-region pilgrimage map",
+    "local turn-based encounter engine",
+    "Lum trust/spark/respect/jealousy bond scene",
+    "D20 oracle",
+    "zero-money Static Shard relic pulls",
+    "localStorage save slot",
+    "procedural WebAudio victory fanfare",
+    "animated ritual curtain",
+    "LuHm spell deck simulation"
+  ],
+  "authority_boundary": {
+    "github_write": false,
+    "shell_execution": false,
+    "package_install": false,
+    "silent_install": false,
+    "secure_folder_cross_profile": false,
+    "network_required_for_gameplay": false,
+    "real_money": false,
+    "spell_buttons_are_simulation_only": true
+  },
+  "asset_policy": {
+    "new_external_art_assets": false,
+    "new_external_audio_assets": false,
+    "runtime_cdn": false,
+    "existing_packaged_lum_avatar_unchanged": true
+  },
+  "promotion": {
+    "automatic": false,
+    "install_decision_deferred_to_professor": true
+  }
+}
