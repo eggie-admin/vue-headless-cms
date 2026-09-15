@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 read = lambda path: (ROOT / path).read_text(encoding="utf-8")
 release = json.loads(read("release/version.json"))
+samsung_universal = json.loads(read("release/samsung-universal-arm64.json"))
 pyproject = tomllib.loads(read("server/pyproject.toml"))
 package = json.loads(read("apps/forge-ui/package.json"))
 export_preset = read("godot/export_presets.cfg")
@@ -21,6 +22,8 @@ network_security = read("godot/android-plugin/plugin/src/main/res/xml/cathedral_
 
 runtime_cdn_markers = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com")
 bootstrap_vendor = package.get("kai9000Vendor", {}).get("bootstrap", {})
+install_portal_url = "https://github.com/eggie-admin/hydra-shell-android/releases/latest"
+samsung_models = {d["model_pattern"] for d in samsung_universal.get("samsung_device_families", [])}
 
 checks = [
     ("single-python-control-plane", "FastAPI" in server_main),
@@ -34,7 +37,16 @@ checks = [
     ("bootstrap-vendor-pinned", bootstrap_vendor.get("version") == "5.3.8" and len(bootstrap_vendor.get("sha512", "")) == 128),
     ("no-runtime-cdn", not any(marker in main_ts or marker in styles_css for marker in runtime_cdn_markers)),
     ("typed-native-bridge", (ROOT / "apps/forge-ui/src/lib/cathedralBridge.ts").is_file()),
+    ("stock-install-portal", install_portal_url in main_ts and "INSTALL / UPDATE" in main_ts),
+    ("stock-install-no-broad-package-permission", "REQUEST_INSTALL_PACKAGES" not in android_manifest),
+    ("external-navigation-scheme-allowlist", 'SAFE_EXTERNAL_SCHEMES = setOf("https", "mailto")' in webview_plugin),
     ("godot-gradle-export", "gradle_build/use_gradle_build=true" in export_preset),
+    ("samsung-universal-min-sdk", 'gradle_build/min_sdk="24"' in export_preset and samsung_universal["application"]["min_sdk"] == 24),
+    ("samsung-universal-target-sdk", 'gradle_build/target_sdk="36"' in export_preset and samsung_universal["application"]["target_sdk"] == 36),
+    ("samsung-universal-arm64", "architectures/arm64-v8a=true" in export_preset and samsung_universal["application"]["abi"] == "arm64-v8a"),
+    ("samsung-device-contract", {"SM-S721*", "SM-X400", "SM-G770*"}.issubset(samsung_models)),
+    ("secure-folder-client-boundary", samsung_universal["secure_folder_boundary"]["role"] == "protected_cockpit_client" and samsung_universal["secure_folder_boundary"]["cross_profile_silent_install"] is False and samsung_universal["secure_folder_boundary"]["signing_keys_in_profile"] is False),
+    ("unrooted-install-boundary", samsung_universal["install_boundary"]["android_user_confirmation_required"] is True and samsung_universal["install_boundary"]["request_install_packages_permission"] is False and samsung_universal["install_boundary"]["root_install"] is False),
     ("godot-android-v2-plugin", "org.godotengine.plugin.v2" in android_manifest),
     ("private-widget-receiver", 'android:exported="false"' in android_manifest),
     ("webview-asset-loader", "WebViewAssetLoader" in webview_plugin),
@@ -54,7 +66,7 @@ checks = [
     ("cms-runtime-manifest", "/api/cms/runtime-manifest" in server_main),
     ("godot-cms-registry", "CmsRegistry" in read("godot/scenes/main.tscn") and (ROOT / "godot/scripts/cms_registry.gd").is_file()),
     ("bridge-message-size-gate", "raw.length() > 32768" in read("godot/scripts/web_cms_bridge.gd")),
-    ("widget-fixed-command-boundary", "CONTROL_SCRIPT" in widget_provider and "arrayOf(command)" in widget_provider and "Runtime.getRuntime().exec" not in widget_provider),
+    ("widget-standalone-boundary", "Runtime.getRuntime().exec" not in widget_provider and "com.termux" not in widget_provider and "openCathedral(context)" in widget_provider and "Android manages LuHm OS app lifecycle" in widget_provider),
     ("widget-final-branding", "Video Forge" not in widget_provider),
     (
         "release-truth-file",
@@ -64,6 +76,7 @@ checks = [
         and release["versionCode"] > 0,
     ),
     ("release-truth-godot", f'version/code={release["versionCode"]}' in export_preset and f'version/name="{release["version"]}"' in export_preset and f'package/unique_name="{release["packageId"]}"' in export_preset),
+    ("release-truth-samsung-universal", samsung_universal["application"]["package_id"] == release["packageId"] and samsung_universal["application"]["version_code"] == release["versionCode"]),
     ("release-truth-python", pyproject["project"]["version"] == release["pythonVersion"]),
     ("release-truth-fastapi", f'APP_VERSION = "{release["pythonVersion"]}"' in server_main),
     ("release-truth-fdroid", f'CurrentVersion: {release["version"]}' in fdroid_metadata and f'CurrentVersionCode: {release["versionCode"]}' in fdroid_metadata),

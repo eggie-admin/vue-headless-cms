@@ -20,6 +20,7 @@ const COMMANDS = [
   ['/ship','Deploy to the world'],
   ['/save 1','Save your progress'],
 ] as const
+const INSTALL_PORTAL_URL = 'https://github.com/eggie-admin/hydra-shell-android/releases/latest'
 
 class Kai9000Cockpit {
   root: JQuery<HTMLElement>
@@ -123,7 +124,12 @@ class Kai9000Cockpit {
 
           <section id="settings" class="kai-page">
             <div class="kai-page-head"><div><p class="eyebrow">SETTINGS</p><h2>Cockpit Controls</h2></div></div>
-            <div class="kai-save-grid"><article class="kai-card"><h3>CMS writes</h3><p>Token stays in sessionStorage.</p><button class="kai-btn arm">Arm writes</button></article><article class="kai-card"><h3>Godot</h3><p>Open the native render queue.</p><button class="kai-btn godot">Godot window</button></article><article class="kai-card"><h3>Avatar</h3><p>Local supplied Lum art with CSS motion.</p><button class="kai-btn avatar-toggle">Pause avatar</button></article></div>
+            <div class="kai-save-grid">
+              <article class="kai-card"><h3>CMS writes</h3><p>Token stays in sessionStorage.</p><button class="kai-btn arm">Arm writes</button></article>
+              <article class="kai-card"><h3>Godot</h3><p>Open the native render queue.</p><button class="kai-btn godot">Godot window</button></article>
+              <article class="kai-card"><h3>Avatar</h3><p>Local supplied Lum art with CSS motion.</p><button class="kai-btn avatar-toggle">Pause avatar</button></article>
+              <article class="kai-card kai-update-card"><p class="eyebrow">REMOTE FORGE</p><h3>LuHm OS Install / Update</h3><p>Open the canonical signed GitHub release in Android. The OS keeps final install authority. No root and no silent installer.</p><a class="kai-btn kai-update-link" href="${INSTALL_PORTAL_URL}" aria-label="Open latest signed LuHm OS release">INSTALL / UPDATE</a><small>GitHub Releases · persistent signer · Android confirmation</small></article>
+            </div>
           </section>
         </div>
 
