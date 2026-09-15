@@ -61,10 +61,10 @@ function readState(): ArcadeState | null {
 
 /**
  * Mount Cathedral Arcade as an opaque-origin sandbox.
- * `allow-scripts` is the only granted browser capability. There is deliberately
- * no `allow-same-origin`, so the game cannot read the cockpit DOM, sessionStorage,
- * CMS write token, or the native CathedralBridge. Its sole parent capability is
- * the source-locked, schema-limited save adapter below.
+ * Scripts are the only granted browser capability. Same-origin elevation, forms,
+ * popups, downloads and top navigation stay absent, so the game cannot read the
+ * cockpit DOM, sessionStorage, CMS write token, or native CathedralBridge.
+ * Its sole parent capability is the source-locked, schema-limited save adapter.
  */
 export function mountCathedralArcade(): void {
   $(() => {
