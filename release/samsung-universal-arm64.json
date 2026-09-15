@@ -1,5 +1,5 @@
 {
-  "schema": "luhmos.samsung-universal-arm64.v1",
+  "schema": "luhmos.samsung-universal-arm64.v2",
   "date": "2026-09-15",
   "status": "testing_candidate",
   "application": {
@@ -11,6 +11,7 @@
     "min_sdk": 24,
     "target_sdk": 36,
     "single_signed_apk": true,
+    "play_aab_supported": true,
     "persistent_release_signer_required": true
   },
   "samsung_device_families": [
@@ -24,7 +25,7 @@
     {
       "name": "Galaxy tablet testing lane",
       "model_pattern": "SM-X400",
-      "role": "stock_tablet_play_and_keyboard_testing",
+      "role": "stock_tablet_play_keyboard_and_crown_gate_testing",
       "root_required": false
     },
     {
@@ -44,9 +45,26 @@
     "termux_required": false,
     "signing_keys_in_profile": false
   },
+  "root_of_trust": {
+    "device_root_required": false,
+    "persistent_signer_continuity": true,
+    "git_commit_provenance": true,
+    "ci_sha256_evidence": true,
+    "play_delivery_preferred": true
+  },
   "install_boundary": {
-    "bootstrap": "trusted_https_github_release_handoff",
-    "android_user_confirmation_required": true,
+    "primary": {
+      "channel": "google_play_internal",
+      "artifact": "aab",
+      "unknown_sources_required": false,
+      "tester_enrollment_required_once": true,
+      "play_store_handles_install_and_updates": true
+    },
+    "fallback": {
+      "channel": "trusted_https_github_release_handoff",
+      "android_user_confirmation_required": true,
+      "unknown_sources_may_be_required": true
+    },
     "request_install_packages_permission": false,
     "silent_install": false,
     "root_install": false,
