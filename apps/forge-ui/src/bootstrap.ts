@@ -13,6 +13,10 @@ void import('./main')
     // It never receives package-install, shell, GitHub, or Secure Folder authority.
     const { mountCathedralArcade } = await import('./cathedralArcade')
     mountCathedralArcade()
+
+    // Crown Mode is visual/operational status only. Professor keeps final release authority.
+    const { mountCrownMode } = await import('./crownMode')
+    mountCrownMode()
   })
   .catch((error: unknown) => {
     const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
