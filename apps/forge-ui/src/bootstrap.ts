@@ -1,7 +1,7 @@
 import $ from 'jquery'
 
 // jQuery UI 1.14 still resolves the global `jQuery` symbol at runtime.
-// Publish the module instance first, then load the cockpit dynamically.
+// Publish the module instance first, then load the privileged cockpit dynamically.
 ;(window as any).jQuery = $
 ;(window as any).$ = $
 
@@ -9,16 +9,24 @@ const app = document.getElementById('app')
 
 void import('./main')
   .then(async () => {
-    // Cathedral Arcade is deliberately mounted as a separate local-only layer.
-    // It never receives package-install, shell, GitHub, or Secure Folder authority.
-    const { mountCathedralArcade } = await import('./cathedralArcade')
-    mountCathedralArcade()
+    // Optional fun layers are deliberately outside the privileged boot-failure path.
+    // A broken Arcade or Crown visual must never replace a working stock cockpit.
+    try {
+      const { mountCathedralArcade } = await import('./cathedralArcade')
+      mountCathedralArcade()
+    } catch (error) {
+      console.warn('Cathedral Arcade unavailable; privileged cockpit remains online.', error)
+    }
 
-    // Crown Mode is visual/operational status only. Professor keeps final release authority.
-    const { mountCrownMode } = await import('./crownMode')
-    mountCrownMode()
+    try {
+      const { mountCrownMode } = await import('./crownMode')
+      mountCrownMode()
+    } catch (error) {
+      console.warn('Crown Mode unavailable; privileged cockpit remains online.', error)
+    }
   })
   .catch((error: unknown) => {
+    // Only failure of the privileged cockpit itself is fatal.
     const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
     console.error('KAI9000 cockpit boot failed', error)
     if (app) {
