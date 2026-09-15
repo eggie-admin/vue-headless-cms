@@ -66,7 +66,7 @@ checks = [
     ("cms-runtime-manifest", "/api/cms/runtime-manifest" in server_main),
     ("godot-cms-registry", "CmsRegistry" in read("godot/scenes/main.tscn") and (ROOT / "godot/scripts/cms_registry.gd").is_file()),
     ("bridge-message-size-gate", "raw.length() > 32768" in read("godot/scripts/web_cms_bridge.gd")),
-    ("widget-fixed-command-boundary", "CONTROL_SCRIPT" in widget_provider and "arrayOf(command)" in widget_provider and "Runtime.getRuntime().exec" not in widget_provider),
+    ("widget-standalone-boundary", "Runtime.getRuntime().exec" not in widget_provider and "com.termux" not in widget_provider and "openCathedral(context)" in widget_provider and "Android manages LuHm OS app lifecycle" in widget_provider),
     ("widget-final-branding", "Video Forge" not in widget_provider),
     (
         "release-truth-file",
