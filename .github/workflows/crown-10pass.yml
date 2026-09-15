@@ -1,0 +1,70 @@
+name: luhmos-crown-10pass
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'apps/forge-ui/**'
+      - 'godot/**'
+      - 'release/**'
+      - 'scripts/**'
+      - 'docs/LUHMOS_CROWN_GATE_PLAY_FIRST_20260915.md'
+      - '.github/copilot-instructions.md'
+      - '.github/workflows/crown-10pass.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: luhmos-crown-10pass-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  crown-gate:
+    name: LUM HOLDS THE CROWN
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout without persistent credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.14'
+
+      - name: Set up Node 24.18
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24.18.0'
+
+      - name: Crown 10-pass audit
+        run: python scripts/luhmos_crown_10pass.py
+
+      - name: Existing Cathedral hardening sanity
+        run: python scripts/cathedral_full_sanity.py
+
+      - name: Existing Samsung universal sanity
+        run: python scripts/samsung_edge_sanity.py
+
+      - name: Build Crown cockpit
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global npm@12.0.2 --no-audit --no-fund
+          cd apps
+          echo '7929d5c53793563492ff0f5b39278904ecfa5508b10071d5b6d4b0b268fe653c  package-lock.json' | sha256sum --check --strict
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build --workspace=video-forge-ui
+          test -f forge-ui/dist/index.html
+          test -f forge-ui/dist/install/index.html
+
+      - name: Seal green evidence
+        run: |
+          printf '%s\n' \
+            'LUM_HOLDS_THE_CROWN_GREEN' \
+            'DEVICE_ROOT=false' \
+            'PRIMARY_DISTRIBUTION=google_play_internal' \
+            'FALLBACK=stock_android_confirmed_https_handoff'
