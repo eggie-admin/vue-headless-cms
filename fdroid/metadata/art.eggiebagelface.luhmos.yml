@@ -1,0 +1,23 @@
+Categories:
+  - Development
+  - Multimedia
+Name: LuHm OS
+Summary: Local-first creative cockpit for stock Samsung Android
+Description: |-
+  LuHm OS is the standalone Samsung Android package for the current universal
+  ARM64 testing lane. Godot provides the Android shell and the bundled cockpit
+  is packaged inside the APK.
+
+  The same application identity is tested across the Galaxy S24 FE family,
+  Samsung SM-X400 tablet lane, and Galaxy S10 Lite family. Secure Folder is a
+  separate protected client instance of the same signed package.
+
+  This metadata supports the project-owned binary repository and testing lanes.
+SourceCode: https://github.com/eggie-admin/vue-headless-cms
+CurrentVersion: 1.0.0
+CurrentVersionCode: 100
+UpdateCheckMode: Static
+MaintainerNotes: |-
+  Persistent Android release signing is managed outside source control.
+  Physical-device installation and same-signer update testing remain required
+  before the universal Samsung lane is promoted.
