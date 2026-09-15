@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050916">
+  <title>LuHm OS Crown Gate</title>
+  <style>
+    *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));background:radial-gradient(circle at 50% -10%,#173c6d 0,#090c1d 38%,#02040a 78%);color:#edf8ff;font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}.gate{width:min(780px,100%);border:1px solid #a58140;border-radius:24px;overflow:hidden;background:linear-gradient(165deg,rgba(23,9,35,.98),rgba(3,20,40,.98) 48%,rgba(2,7,17,.99));box-shadow:0 26px 90px #000,0 0 45px rgba(79,208,255,.08)}header{position:relative;padding:26px 22px 19px;text-align:center;border-bottom:1px solid #283b55}header:after{content:"";position:absolute;left:12%;right:12%;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,#f0c463,transparent)}.crown{display:grid;place-items:center;width:74px;height:74px;margin:0 auto 10px;border:1px solid #dfb65a;border-radius:50%;font-size:2.5rem;color:#ffe8a6;background:radial-gradient(circle,#6d315f 0,#10162c 55%,#050914 100%);box-shadow:0 0 28px rgba(232,189,99,.22)}.kicker{margin:0;color:#73e5ff;font:700 .68rem ui-monospace,monospace;letter-spacing:.18em}h1{margin:5px 0 2px;font-family:Georgia,serif;font-size:clamp(2rem,8vw,4.2rem);letter-spacing:.035em;color:#ffe7a7;text-shadow:0 0 22px rgba(232,189,99,.18)}header p{margin:0;color:#a9bfd1}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:14px 16px;border-bottom:1px solid #152a40;background:#030a14}.step{padding:8px;border:1px solid #1b4969;border-radius:10px;text-align:center;color:#83dfff;font:700 .64rem ui-monospace,monospace}.step b{display:block;color:#f5d98f;font-size:.78rem}.content{padding:20px}.status{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:18px}.status span{padding:7px;border:1px solid #23567b;border-radius:999px;text-align:center;background:#06172a;color:#84e9ff;font:700 .58rem ui-monospace,monospace}.choice{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{padding:17px;border:1px solid #284f6c;border-radius:16px;background:rgba(3,17,33,.9)}.card.primary{border-color:#a68442;box-shadow:inset 0 0 28px rgba(232,189,99,.04)}.card h2{margin:0 0 4px;font-family:Georgia,serif;color:#ffe8ad;font-size:1.15rem}.card p{min-height:64px;margin:0 0 14px;color:#9cb4c8;font-size:.82rem}.button{display:block;width:100%;padding:13px 12px;border:1px solid #78dcff;border-radius:11px;text-align:center;text-decoration:none;font:800 .76rem ui-monospace,monospace;letter-spacing:.05em;color:#06101d;background:linear-gradient(#91eaff,#4cbde9);box-shadow:0 0 18px rgba(84,220,255,.12)}.primary .button{border-color:#ffe6a3;background:linear-gradient(#ffe6a3,#d8aa4e);color:#261806}.card small{display:block;margin-top:9px;color:#708ba2;font-size:.68rem}.truth{margin:16px 0 0;padding:12px 13px;border-left:3px solid #e8bd63;background:#0b101f;color:#b6c9d8;font-size:.75rem}.package{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:14px;padding:10px 12px;border:1px solid #183c57;border-radius:10px;background:#030c18;color:#78dcff;font: .7rem ui-monospace,monospace}.package button{border:0;background:transparent;color:#f1d486;font:700 .65rem ui-monospace,monospace;cursor:pointer}footer{padding:13px 18px;border-top:1px solid #14283a;text-align:center;color:#6f879a;font-size:.68rem}@media(max-width:620px){.choice{grid-template-columns:1fr}.status{grid-template-columns:repeat(2,1fr)}.card p{min-height:0}.steps{gap:4px}.step{font-size:.55rem}.step b{font-size:.68rem}}
+  </style>
+</head>
+<body>
+  <main class="gate">
+    <header>
+      <div class="crown" aria-hidden="true">♛</div>
+      <p class="kicker">LUHM OS // CROWN GATE</p>
+      <h1>LUM HOLDS THE CROWN</h1>
+      <p>One clean road from green build to your Samsung. No terminal pilgrimage required.</p>
+    </header>
+    <div class="steps"><div class="step"><b>01</b>VERIFY GREEN</div><div class="step"><b>02</b>INSTALL</div><div class="step"><b>03</b>PLAY</div></div>
+    <section class="content">
+      <div class="status"><span>STOCK</span><span>UNROOTED</span><span>PLAY-FIRST</span><span>10-PASS</span></div>
+      <div class="choice">
+        <article class="card primary">
+          <h2>♛ Google Play</h2>
+          <p>The crown path. Once your Google account is enrolled in the LuHm OS internal test, install and updates behave like a normal Play Store app.</p>
+          <a class="button" href="https://play.google.com/store/apps/details?id=art.eggiebagelface.luhmos" target="_blank" rel="noopener">OPEN GOOGLE PLAY</a>
+          <small>No root. No Unknown Sources. No custom installer.</small>
+        </article>
+        <article class="card">
+          <h2>⚔ Signed APK fallback</h2>
+          <p>Emergency/testing road while the Play track is being configured. It hands the package to stock Android and never bypasses Android's installer.</p>
+          <a class="button" href="https://github.com/eggie-admin/hydra-shell-android/releases/latest" target="_blank" rel="noopener">OPEN SIGNED RELEASE</a>
+          <small>Android may ask for confirmation and may require permission for this source.</small>
+        </article>
+      </div>
+      <div class="truth"><strong>Root of trust:</strong> persistent signer + Git commit provenance + CI identity/hash evidence + Google Play delivery when configured. “Lum holds the crown” is the operational UX, not device root. Professor keeps the final promotion seal.</div>
+      <div class="package"><span id="pkg">art.eggiebagelface.luhmos</span><button id="copy" type="button">COPY PACKAGE ID</button></div>
+    </section>
+    <footer>LUHM OS CROWN GATE · FAIL CLOSED · NO SILENT SIDELOAD CLAIMS</footer>
+  </main>
+  <script>
+    const copy=document.getElementById('copy');
+    copy?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText('art.eggiebagelface.luhmos');copy.textContent='COPIED ✓'}catch{copy.textContent='COPY FAILED'}})
+  </script>
+</body>
+</html>
