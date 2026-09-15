@@ -21,6 +21,7 @@ network_security = read("godot/android-plugin/plugin/src/main/res/xml/cathedral_
 
 runtime_cdn_markers = ("cdn.jsdelivr.net", "unpkg.com", "cdnjs.cloudflare.com")
 bootstrap_vendor = package.get("kai9000Vendor", {}).get("bootstrap", {})
+install_portal_url = "https://github.com/eggie-admin/hydra-shell-android/releases/latest"
 
 checks = [
     ("single-python-control-plane", "FastAPI" in server_main),
@@ -34,6 +35,9 @@ checks = [
     ("bootstrap-vendor-pinned", bootstrap_vendor.get("version") == "5.3.8" and len(bootstrap_vendor.get("sha512", "")) == 128),
     ("no-runtime-cdn", not any(marker in main_ts or marker in styles_css for marker in runtime_cdn_markers)),
     ("typed-native-bridge", (ROOT / "apps/forge-ui/src/lib/cathedralBridge.ts").is_file()),
+    ("stock-install-portal", install_portal_url in main_ts and "INSTALL / UPDATE" in main_ts),
+    ("stock-install-no-broad-package-permission", "REQUEST_INSTALL_PACKAGES" not in android_manifest),
+    ("external-navigation-scheme-allowlist", 'SAFE_EXTERNAL_SCHEMES = setOf("https", "mailto")' in webview_plugin),
     ("godot-gradle-export", "gradle_build/use_gradle_build=true" in export_preset),
     ("godot-android-v2-plugin", "org.godotengine.plugin.v2" in android_manifest),
     ("private-widget-receiver", 'android:exported="false"' in android_manifest),
