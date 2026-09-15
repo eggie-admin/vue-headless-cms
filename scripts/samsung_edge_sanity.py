@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT / "infra/samsung/samsung-lite-profile.json"
 UNIVERSAL = ROOT / "release/samsung-universal-arm64.json"
+CROWN = ROOT / "release/crown-install-lane.json"
 MANIFEST = ROOT / "godot/android-plugin/plugin/src/main/AndroidManifest.xml"
 WIDGET = ROOT / "godot/android-plugin/plugin/src/main/java/art/eggiebagelface/cathedral/CathedralWidgetProvider.kt"
 PLUGIN = ROOT / "godot/android-plugin/plugin/src/main/java/art/eggiebagelface/cathedral/CathedralAndroidPlugin.kt"
@@ -27,6 +28,7 @@ def check(condition: bool, message: str) -> None:
 
 profile = json.loads(PROFILE.read_text(encoding="utf-8"))
 universal = json.loads(UNIVERSAL.read_text(encoding="utf-8"))
+crown = json.loads(CROWN.read_text(encoding="utf-8"))
 manifest = MANIFEST.read_text(encoding="utf-8")
 widget = WIDGET.read_text(encoding="utf-8")
 plugin = PLUGIN.read_text(encoding="utf-8")
@@ -37,7 +39,7 @@ android_ci = ANDROID_CI.read_text(encoding="utf-8")
 forge_ci = FORGE_CI.read_text(encoding="utf-8")
 
 devices = profile["devices"]
-check(profile["profile_version"] == "2.0.0", "Samsung stock profile version drift")
+check(profile["profile_version"] == "2.1.0", "Samsung stock Crown profile version drift")
 check(profile["doctrine"] == "universal_stock_standalone", "Samsung stock doctrine drift")
 check(profile["application"]["package_id"] == "art.eggiebagelface.luhmos", "package identity drift")
 check(profile["application"]["abi"] == "arm64-v8a", "Samsung ABI drift")
@@ -59,10 +61,17 @@ check(secure["cross_profile_silent_install"] is False, "cross-profile silent ins
 check(secure["build_forge_inside_profile"] is False and secure["signing_keys_inside_profile"] is False, "Secure Folder must not become forge/signing authority")
 
 distribution = profile["distribution"]
-check(distribution["bootstrap"].startswith("https://github.com/eggie-admin/hydra-shell-android/releases/"), "trusted release bootstrap drift")
-check(distribution["android_user_confirmation_required"] is True, "Android install confirmation must remain required")
+check(distribution["primary"]["channel"] == "google_play_internal", "Google Play internal must be the primary stock install lane")
+check(distribution["primary"]["artifact"] == "aab", "Play lane must use AAB")
+check(distribution["primary"]["unknown_sources_required"] is False, "Play lane must not require Unknown Sources")
+check(distribution["fallback"]["bootstrap"].startswith("https://github.com/eggie-admin/hydra-shell-android/releases/"), "trusted signed-release fallback drift")
+check(distribution["fallback"]["android_user_confirmation_required"] is True, "fallback Android install confirmation must remain required")
 check(distribution["request_install_packages_permission"] is False, "broad package install permission must remain disabled")
 check(distribution["same_signer_update_required"] is True, "same-signer update continuity must remain required")
+check(profile["cloud_release_auth"]["google"] == "github_oidc_workload_identity_federation", "Google keyless release auth drift")
+check(profile["cloud_release_auth"]["long_lived_service_account_json"] is False, "long-lived Google service-account JSON must remain forbidden")
+check(crown["authority"]["visible_operational_crown"] == "Lum", "Lum Crown authority drift")
+check(crown["authority"]["human_final_authority"] == "Professor", "human final authority drift")
 
 check("com.termux.permission.RUN_COMMAND" not in manifest, "production manifest still requests Termux RUN_COMMAND")
 check('<package android:name="com.termux"' not in manifest, "production manifest still queries Termux")
@@ -84,11 +93,14 @@ check("MIXED_CONTENT_NEVER_ALLOW" in plugin and "setAcceptCookie(false)" in plug
 check('renderer/rendering_method="mobile"' in godot and 'renderer/rendering_method.mobile="mobile"' in godot, "Godot Mobile/Vulkan lane not enabled")
 check('gradle_build/min_sdk="24"' in export and 'gradle_build/target_sdk="36"' in export, "Godot Samsung SDK export drift")
 check("architectures/arm64-v8a=true" in export and "architectures/armeabi-v7a=false" in export, "Godot Samsung ABI export drift")
+check('name="Android Play Internal"' in export and "gradle_build/export_format=1" in export, "Play AAB preset missing")
 
 check(universal["application"]["package_id"] == profile["application"]["package_id"], "universal manifest package mismatch")
 check(universal["application"]["min_sdk"] == profile["application"]["min_sdk"], "universal manifest min SDK mismatch")
 check(universal["application"]["target_sdk"] == profile["application"]["target_sdk"], "universal manifest target SDK mismatch")
 check({"SM-S721*", "SM-X400", "SM-G770*"}.issubset({d["model_pattern"] for d in universal["samsung_device_families"]}), "universal Samsung device matrix incomplete")
+check(universal["install_boundary"]["primary"]["channel"] == "google_play_internal", "universal release manifest is not Play-first")
+check(universal["install_boundary"]["fallback"]["android_user_confirmation_required"] is True, "universal fallback must keep Android confirmation")
 
 check(package.get("devDependencies", {}).get("prettier") == "3.6.2", "Prettier must remain pinned")
 check("samsung_edge_sanity.py" in forge_ci, "Forge CI Samsung gate missing")
