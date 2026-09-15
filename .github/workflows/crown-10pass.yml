@@ -60,11 +60,17 @@ jobs:
           npm run build --workspace=video-forge-ui
           test -f forge-ui/dist/index.html
           test -f forge-ui/dist/install/index.html
+          test -f forge-ui/dist/arcade/index.html
+          grep -Fq 'sandbox="allow-scripts"' forge-ui/src/cathedralArcade.ts
+          ! grep -Fq 'allow-same-origin' forge-ui/src/cathedralArcade.ts
+          grep -Fq "connect-src 'none'" forge-ui/dist/arcade/index.html
 
       - name: Seal green evidence
         run: |
           printf '%s\n' \
             'LUM_HOLDS_THE_CROWN_GREEN' \
+            'ARCADE_ORIGIN=opaque' \
+            'ARCADE_PARENT_CAPABILITY=validated_save_only' \
             'DEVICE_ROOT=false' \
             'PRIMARY_DISTRIBUTION=google_play_internal' \
             'FALLBACK=stock_android_confirmed_https_handoff'
