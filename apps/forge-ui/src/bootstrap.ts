@@ -1,13 +1,40 @@
 import $ from 'jquery'
 
-// jQuery UI 1.14 still resolves the global `jQuery` symbol at runtime.
-// Publish the module instance first, then load the cockpit dynamically.
+// jQuery UI's npm modules still execute through their browser-global UMD path
+// when bundled by Vite. Publish one jQuery instance first, then load the UI
+// dependency graph in deterministic order before the cockpit modules register.
 ;(window as any).jQuery = $
 ;(window as any).$ = $
 
 const app = document.getElementById('app')
 
-void import('./main').catch((error: unknown) => {
+async function bootCockpit() {
+  await import('jquery-ui/ui/version')
+  await import('jquery-ui/ui/widget')
+  await import('jquery-ui/ui/data')
+  await import('jquery-ui/ui/disable-selection')
+  await import('jquery-ui/ui/focusable')
+  await import('jquery-ui/ui/keycode')
+  await import('jquery-ui/ui/plugin')
+  await import('jquery-ui/ui/position')
+  await import('jquery-ui/ui/scroll-parent')
+  await import('jquery-ui/ui/tabbable')
+  await import('jquery-ui/ui/unique-id')
+  await import('jquery-ui/ui/widgets/mouse')
+  await import('jquery-ui/ui/widgets/button')
+  await import('jquery-ui/ui/widgets/draggable')
+  await import('jquery-ui/ui/widgets/resizable')
+
+  const jq = $ as any
+  if (typeof jq.widget !== 'function') throw new TypeError('jQuery UI widget factory failed to initialize')
+  if (typeof jq.fn.button !== 'function') throw new TypeError('jQuery UI button failed to initialize')
+  if (typeof jq.fn.draggable !== 'function') throw new TypeError('jQuery UI draggable failed to initialize')
+  if (typeof jq.fn.resizable !== 'function') throw new TypeError('jQuery UI resizable failed to initialize')
+
+  await import('./main')
+}
+
+void bootCockpit().catch((error: unknown) => {
   const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
   console.error('KAI9000 cockpit boot failed', error)
   if (app) {
