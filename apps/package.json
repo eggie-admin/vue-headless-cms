@@ -1,0 +1,29 @@
+{
+  "name": "video-forge-web-workspace",
+  "private": true,
+  "version": "0.2.0",
+  "packageManager": "npm@12.0.2",
+  "engines": {
+    "node": ">=24.18 <25",
+    "npm": ">=11.19 <13"
+  },
+  "workspaces": [
+    "forge-ui"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=video-forge-ui",
+    "dev": "npm run dev --workspace=video-forge-ui",
+    "preview": "npm run preview --workspace=video-forge-ui",
+    "format": "prettier --write \"forge-ui/**/*.{html,css,ts,vue,json}\"",
+    "format:check": "prettier --check \"forge-ui/**/*.{html,css,ts,vue,json}\"",
+    "backend:install": "python3 -m pip install -e ../server",
+    "backend:smoke": "python3 ../scripts/backend_smoke.py",
+    "backend:install-smoke": "npm run backend:install && npm run backend:smoke",
+    "samsung:smoke": "python3 ../scripts/samsung_benchmark.py --smoke",
+    "samsung:bench": "python3 ../scripts/samsung_benchmark.py --full",
+    "samsung:guard:adb": "bash ../scripts/samsung_background_guard_adb.sh"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
+}

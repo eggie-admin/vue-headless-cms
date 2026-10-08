@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://video-forge.local/schemas/cutscene.schema.json",
+  "title": "Video Forge Cutscene",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "beats"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+    "title": { "type": "string", "minLength": 1 },
+    "checkpoint_before": { "type": ["string", "null"] },
+    "beats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string" },
+          "duration": { "type": "number", "minimum": 0 },
+          "avatar_state": { "type": "string" },
+          "animation": { "type": "string" },
+          "camera": { "type": "string" },
+          "dialogue": { "type": "string" },
+          "audio_cue": { "type": "string" },
+          "event": { "type": "string" },
+          "wait_for": { "type": "string" }
+        }
+      }
+    }
+  }
+}
