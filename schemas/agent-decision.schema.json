@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://video-forge.local/schemas/agent-decision.schema.json",
+  "title": "Video Forge Agent Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["intent", "lane", "tool", "arguments", "risk", "requires_confirmation", "rationale"],
+  "properties": {
+    "intent": {"type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[a-z0-9_.-]+$"},
+    "lane": {"enum": ["local", "cloud"]},
+    "tool": {"enum": ["respond", "get_system_status", "get_job_status", "inspect_cache", "set_avatar_state", "play_cutscene", "start_job", "pause_job", "resume_job", "finalize_video", "cleanup_cache", "upload_final"]},
+    "arguments": {"type": "object"},
+    "risk": {"enum": ["low", "medium", "high"]},
+    "requires_confirmation": {"type": "boolean"},
+    "rationale": {"type": "string", "maxLength": 500}
+  }
+}

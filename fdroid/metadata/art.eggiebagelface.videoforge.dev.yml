@@ -1,0 +1,26 @@
+Categories:
+  - Multimedia
+Name: Video Forge Cathedral Dev
+Summary: Local-first Godot and FFmpeg control surface for Samsung development
+Description: |-
+  Development build of the Video Forge Cathedral interface.
+
+  This package is intended for private development distribution and Samsung
+  tablet smoke testing. It uses Godot as the fullscreen interactive cage and
+  communicates with the local FastAPI control plane through typed contracts.
+
+  The Vue CMS is bundled into the APK and displayed by the CathedralAndroid
+  Godot Android v2 WebView plugin. CMS documents persist in the Termux Python
+  edge through revisioned SQLite storage. Python remains outside the APK.
+
+  This metadata is for a private F-Droid repository lane. It is not a claim of
+  acceptance into the official F-Droid repository.
+SourceCode: https://github.com/eggie-admin/vue-headless-cms
+CurrentVersion: 0.6.0-dev
+CurrentVersionCode: 6
+UpdateCheckMode: Static
+MaintainerNotes: |-
+  Private-repository metadata only.
+  Official F-Droid submission is intentionally blocked until the clean-room
+  application code and all redistributed assets have an explicit FLOSS license
+  and the build recipe can be reviewed for F-Droid policy compliance.
