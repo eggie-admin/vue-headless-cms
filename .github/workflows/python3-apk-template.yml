@@ -8,7 +8,7 @@ on:
       - 'templates/python3-apk/**'
       - '.github/workflows/python3-apk-template.yml'
   pull_request:
-    branches: [samsung-sm-x400]
+    branches: [main, samsung-sm-x400]
     paths:
       - 'templates/python3-apk/**'
       - '.github/workflows/python3-apk-template.yml'
